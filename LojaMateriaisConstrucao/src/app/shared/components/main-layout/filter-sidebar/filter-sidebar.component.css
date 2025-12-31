@@ -1,0 +1,5 @@
+* {
+    font-family: var(--font-sans);
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f1f1;
+}

@@ -1,107 +1,143 @@
-<aside id="sidebar-filters" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl lg:shadow-none lg:static lg:w-72 lg:bg-transparent lg:block z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto lg:overflow-visible p-6 lg:p-0 border-r border-gray-100 lg:border-none scrollbar-hide">
+<aside class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl lg:shadow-none lg:static lg:w-72 lg:bg-transparent lg:block z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto lg:overflow-visible p-6 lg:p-0 border-r border-gray-100 lg:border-none h-full lg:h-auto">
     
     <div class="flex justify-between items-center lg:hidden mb-8">
         <h2 class="text-xl font-bold text-gray-900">Filtrar</h2>
-        <button id="close-sidebar" class="text-gray-500 hover:text-red-500 p-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <button type="button" (click)="close.emit()" class="text-gray-500 hover:text-red-500 p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <i class="ph ph-x text-2xl"></i>
         </button>
     </div>
     
-    <div class="lg:sticky lg:top-24 space-y-2 pr-4">
+    <div class="space-y-2 pr-4 pb-20 lg:pb-0">
         
-        <button onclick="resetFilters()" class="w-full mb-4 py-2 px-4 rounded-lg border border-gray-200 text-gray-500 font-semibold text-xs hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition-all flex items-center justify-center gap-2 group">
+        <button type="button" (click)="resetFilters()" class="w-full mb-4 py-2 px-4 rounded-lg border border-gray-200 text-gray-500 font-semibold text-xs hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition-all flex items-center justify-center gap-2 group sticky top-0 bg-white z-10 lg:static">
             <i class="ph-bold ph-arrow-counter-clockwise group-hover:-rotate-180 transition-transform duration-500"></i> 
             Limpar Todos
         </button>
         
-        <!-- Filtro: Categorias -->
         <div class="border-b border-gray-100 py-4 group/section">
-            <button onclick="toggleFilter('categories-content', 'categories-icon')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
+            <button type="button" (click)="toggleSection('categories')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
                 Categorias
-                <i id="categories-icon" class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300"></i>
+                <i class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300" [class.-rotate-180]="!sections.categories"></i>
             </button>
-            <div id="categories-content" class="accordion-content mt-4 space-y-1">
-                <!-- JS Injected -->
-            </div>
-        </div>
-        
-        <!-- Filtro: Preço -->
-        <div class="border-b border-gray-100 py-4 group/section">
-            <button onclick="toggleFilter('price-content', 'price-icon')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
-                Faixa de Preço
-                <i id="price-icon" class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300"></i>
-            </button>
-            <div id="price-content" class="accordion-content mt-4 space-y-4">
-                <input type="range" id="price-range" min="0" max="2000" step="10" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer price-slider accent-brand-500">
-                <div class="flex items-center justify-between text-sm">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 font-medium text-gray-600 w-20 text-center">R$ 0</div>
-                    <span class="text-gray-300">-</span>
-                    <div class="bg-brand-50 border border-brand-100 rounded-lg px-3 py-1.5 font-bold text-brand-700 w-24 text-center" id="price-value">R$ 2000</div>
+            <div class="transition-all duration-300 ease-in-out overflow-hidden" 
+                 [ngClass]="sections.categories ? 'max-h-125 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'">
+                <div class="space-y-1">
+                    @for (cat of options.categories; track cat) {
+                        <label class="flex items-center cursor-pointer group py-1">
+                            <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                                <input type="checkbox" [value]="cat" [checked]="filters.categories.includes(cat)" (change)="onArrayFilterChange($event, 'categories', cat)" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
+                                <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">{{ cat }}</span>
+                        </label>
+                    }
                 </div>
             </div>
         </div>
         
-        <!-- Filtro: Marcas -->
         <div class="border-b border-gray-100 py-4 group/section">
-            <button onclick="toggleFilter('brands-content', 'brands-icon')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
-                Marcas
-                <i id="brands-icon" class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300"></i>
+            <button type="button" (click)="toggleSection('price')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
+                Faixa de Preço
+                <i class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300" [class.-rotate-180]="!sections.price"></i>
             </button>
-            <div id="brands-content" class="accordion-content mt-4 space-y-1">
-                <!-- JS Injected -->
-            </div>
-        </div>
-        
-        <!-- Filtro: Disponibilidade -->
-        <div class="border-b border-gray-100 py-4 group/section">
-            <button onclick="toggleFilter('availability-content', 'availability-icon')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
-                Disponibilidade
-                <i id="availability-icon" class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300"></i>
-            </button>
-            <div id="availability-content" class="accordion-content mt-4 space-y-2">
-                <label class="flex items-center cursor-pointer group py-1">
-                    <div class="relative flex items-center justify-center w-5 h-5 mr-3">
-                        <input type="checkbox" id="filter-stock" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
-                        <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
-                    </div>
-                    <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">Apenas em Estoque</span>
-                </label>
-                <label class="flex items-center cursor-pointer group py-1">
-                    <div class="relative flex items-center justify-center w-5 h-5 mr-3">
-                        <input type="checkbox" id="filter-promo" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
-                        <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
-                    </div>
-                    <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">Em Oferta</span>
-                </label>
-            </div>
-        </div>
-        
-        <!-- Filtro: Avaliação -->
-        <div class="py-4 group/section">
-            <button onclick="toggleFilter('rating-content', 'rating-icon')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
-                Avaliação
-                <i id="rating-icon" class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300"></i>
-            </button>
-            <div id="rating-content" class="accordion-content mt-4 space-y-3">
-                <label class="flex items-center cursor-pointer group select-none">
-                    <div class="relative flex items-center justify-center w-5 h-5 mr-3">
-                        <input type="radio" name="rating" value="4" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-brand-500 checked:bg-brand-500 transition-all" onclick="applyFilters()">
-                        <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                    </div>
-                    <div class="flex text-yellow-400 text-sm gap-0.5 group-hover:opacity-80 transition-opacity">
-                        <i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph ph-star text-gray-300"></i>
-                    </div>
-                    <span class="ml-2 text-sm text-gray-600 font-medium group-hover:text-gray-900">& Acima</span>
-                </label>
+            
+            <div class="transition-all duration-300 ease-in-out overflow-hidden" 
+                 [ngClass]="sections.price ? 'max-h-50 opacity-100 mt-6' : 'max-h-0 opacity-0 mt-0'">
                 
-                <label class="flex items-center cursor-pointer group select-none">
-                    <div class="relative flex items-center justify-center w-5 h-5 mr-3">
-                        <input type="radio" name="rating" value="all" checked class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-brand-500 checked:bg-brand-500 transition-all" onclick="applyFilters()">
-                        <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                <div class="px-2 mb-4">
+                    <ngx-slider [(value)]="filters.minPrice" [(highValue)]="filters.maxPrice" [options]="sliderOptions" (userChangeEnd)="onFilterChange()"></ngx-slider>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="relative w-full">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">R$</span>
+                        <input type="number" [(ngModel)]="filters.minPrice" (change)="onFilterChange()" class="w-full pl-8 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
                     </div>
-                    <span class="text-sm text-gray-600 font-medium group-hover:text-gray-900">Todas as avaliações</span>
-                </label>
+                    <span class="text-gray-400 font-medium">-</span>
+                    <div class="relative w-full">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">R$</span>
+                        <input type="number" [(ngModel)]="filters.maxPrice" (change)="onFilterChange()" class="w-full pl-8 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <div class="border-b border-gray-100 py-4 group/section">
+            <button type="button" (click)="toggleSection('brands')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
+                Marcas
+                <i class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300" [class.-rotate-180]="!sections.brands"></i>
+            </button>
+            <div class="transition-all duration-300 ease-in-out overflow-hidden" 
+                 [ngClass]="sections.brands ? 'max-h-125 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'">
+                <div class="space-y-1">
+                    @for (brand of options.brands; track brand) {
+                        <label class="flex items-center cursor-pointer group py-1">
+                            <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                                <input type="checkbox" [value]="brand" [checked]="filters.brands.includes(brand)" (change)="onArrayFilterChange($event, 'brands', brand)" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
+                                <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">{{ brand }}</span>
+                        </label>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-b border-gray-100 py-4 group/section">
+            <button type="button" (click)="toggleSection('availability')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
+                Disponibilidade
+                <i class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300" [class.-rotate-180]="!sections.availability"></i>
+            </button>
+            <div class="transition-all duration-300 ease-in-out overflow-hidden" 
+                 [ngClass]="sections.availability ? 'max-h-37.5 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'">
+                <div class="space-y-2">
+                    <label class="flex items-center cursor-pointer group py-1">
+                        <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                            <input type="checkbox" [(ngModel)]="filters.inStock" (change)="onFilterChange()" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
+                            <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+                        </div>
+                        <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">Apenas em Estoque</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer group py-1">
+                        <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                            <input type="checkbox" [(ngModel)]="filters.onSale" (change)="onFilterChange()" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-brand-500 checked:bg-brand-500 transition-all">
+                            <i class="ph-bold ph-check text-white text-[10px] absolute opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+                        </div>
+                        <span class="text-gray-600 text-sm font-medium group-hover:text-brand-600 transition-colors select-none">Em Oferta</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="py-4 group/section">
+            <button type="button" (click)="toggleSection('rating')" class="w-full flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-widest hover:text-brand-600 transition-colors">
+                Avaliação
+                <i class="ph-bold ph-caret-down text-gray-400 group-hover/section:text-brand-500 transition-transform duration-300" [class.-rotate-180]="!sections.rating"></i>
+            </button>
+            <div class="transition-all duration-300 ease-in-out overflow-hidden" 
+                 [ngClass]="sections.rating ? 'max-h-50 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'">
+                <div class="space-y-3">
+                    <label class="flex items-center cursor-pointer group select-none">
+                        <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                            <input type="radio" name="rating" [value]="4" [(ngModel)]="filters.rating" (change)="onFilterChange()" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-brand-500 checked:bg-brand-500 transition-all">
+                            <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                        </div>
+                        <div class="flex text-yellow-400 text-sm gap-0.5 group-hover:opacity-80 transition-opacity">
+                            <i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph ph-star text-gray-300"></i>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600 font-medium group-hover:text-gray-900">& Acima</span>
+                    </label>
+                    
+                    <label class="flex items-center cursor-pointer group select-none">
+                            <div class="relative flex items-center justify-center w-5 h-5 mr-3">
+                            <input type="radio" name="rating" value="all" [(ngModel)]="filters.rating" (change)="onFilterChange()" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-brand-500 checked:bg-brand-500 transition-all">
+                            <div class="absolute w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                        </div>
+                        <span class="text-sm text-gray-600 font-medium group-hover:text-gray-900">Todas as avaliações</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
     </div>
 </aside>
