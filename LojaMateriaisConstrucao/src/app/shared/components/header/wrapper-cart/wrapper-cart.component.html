@@ -1,0 +1,9 @@
+<!-- Carrinho Wrapper -->
+<div class="relative group cursor-pointer py-2" id="cart-container" onclick="window.location.href='cart.html'">
+    <div class="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <i class="ph ph-shopping-cart text-2xl text-gray-700 group-hover:text-brand-600 transition-colors" id="cart-icon"></i>
+        <span id="cart-badge" class="absolute top-0 right-0 bg-brand-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full transform scale-0 transition-transform duration-300 border-2 border-white shadow-sm">0</span>
+    </div>
+    
+    <app-shopping-cart-popup></app-shopping-cart-popup>
+</div>

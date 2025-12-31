@@ -1,0 +1,74 @@
+<div class="mb-8 rounded-3xl overflow-hidden shadow-2xl relative h-72 md:h-96 group select-none bg-gray-900">
+    
+    <!-- Slides Wrapper -->
+    <div class="w-full h-full relative">
+        @for (slide of slides; track $index) {
+            <div 
+            class="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            [ngClass]="{'opacity-100 z-10': currentSlide === $index, 'opacity-0 z-0': currentSlide !== $index}">
+            <!-- Imagem de Fundo (com efeito de zoom suave se ativo) -->
+            <img 
+            [src]="slide.image" 
+            [alt]="slide.badge"
+            class="w-full h-full object-cover opacity-60 transition-transform duration-2000"
+            [ngClass]="{'scale-105': currentSlide === $index, 'scale-100': currentSlide !== $index}">
+            
+            <!-- Conteúdo do Slide -->
+            <div class="absolute inset-0 bg-linear-to-r from-gray-900/90 via-gray-900/50 to-transparent flex flex-col justify-center px-8 md:px-16">
+                <!-- Container de Animação do Texto -->
+                <div [ngClass]="{'animate-fade-in-up': currentSlide === $index, 'opacity-0': currentSlide !== $index}">
+                    
+                    <!-- Badge -->
+                    <span class="inline-block bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wider mb-4 uppercase">
+                        {{ slide.badge }}
+                    </span>
+                    
+                    <!-- Título (com suporte a HTML para cores) -->
+                    <h2 
+                    class="text-3xl md:text-5xl font-bold text-white mb-4 max-w-lg leading-tight drop-shadow-lg"
+                    [innerHTML]="slide.title">
+                </h2>
+                
+                <!-- Descrição -->
+                <p class="text-gray-200 text-lg mb-8 max-w-md hidden md:block drop-shadow-md">
+                    {{ slide.description }}
+                </p>
+                
+                <!-- Botão CTA -->
+                <button class="bg-white text-gray-900 hover:bg-brand-50 px-8 py-3 rounded-xl font-bold w-fit transition-all flex items-center gap-2 group/btn shadow-lg shadow-white/10 hover:shadow-white/20">
+                    {{ slide.cta }}
+                    <i class="ph-bold ph-arrow-right group-hover/btn:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+<!-- Botão Anterior -->
+<button 
+(click)="prevSlide()" 
+class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 backdrop-blur-md text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 z-20 border border-white/10 hover:scale-110 cursor-pointer">
+<i class="ph-bold ph-caret-left text-xl"></i>
+</button>
+
+<!-- Botão Próximo -->
+<button 
+(click)="nextSlide()" 
+class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 backdrop-blur-md text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full transition-all opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 z-20 border border-white/10 hover:scale-110 cursor-pointer">
+<i class="ph-bold ph-caret-right text-xl"></i>
+</button>
+
+<!-- Indicadores (Bolinhas) -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+    @for (slide of slides; track $index) {
+        <button 
+        (click)="goToSlide($index)" 
+        class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+        [ngClass]="currentSlide === $index ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'"
+        >
+    </button>
+}
+</div>
+
+</div>

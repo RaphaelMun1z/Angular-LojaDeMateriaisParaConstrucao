@@ -1,0 +1,19 @@
+<header class="fixed top-0 left-0 w-full bg-white shadow-sm z-50 border-b border-gray-100">
+    <div class="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
+        
+        <app-logo-menu-mobile-trigger></app-logo-menu-mobile-trigger>
+        
+        <app-central-search-bar></app-central-search-bar>
+        
+        <!-- Ações do Usuário -->
+        <div class="flex items-center gap-4 sm:gap-6 min-w-fit justify-end">
+            <button class="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded-full">
+                <i class="ph ph-magnifying-glass text-2xl"></i>
+            </button>
+            
+            <app-wrapper-cart></app-wrapper-cart>
+            
+            <app-my-account-area></app-my-account-area>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,21 @@
+<div 
+class="w-full"
+[ngClass]="{
+    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6': viewMode === 'grid',
+    'flex flex-col gap-4': viewMode === 'list'
+}">
+@for (product of products; track product.id) {
+    <app-product-card 
+    [product]="product" 
+    [viewMode]="viewMode"
+    (addToCart)="handleAddToCart($event)"
+    (showQuickView)="openPopup($event, product)"
+    (hideQuickView)="closePopup()"></app-product-card>
+}
+@empty {
+    <div class="col-span-full py-20 text-center text-gray-500">
+        <i class="ph ph-magnifying-glass text-4xl mb-2"></i>
+        <p>Nenhum produto encontrado com os filtros atuais.</p>
+    </div>
+}
+</div>

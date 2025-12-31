@@ -1,0 +1,34 @@
+<div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+    <div class="flex items-center gap-3">
+        <div class="bg-brand-50 text-brand-600 p-2 rounded-lg">
+            <i class="ph-fill ph-squares-four text-xl"></i>
+        </div>
+        <div>
+            <h2 class="font-bold text-gray-800 leading-tight">Todos os Produtos</h2>
+            <p class="text-xs text-gray-500 font-medium mt-0.5">Mostrando <span id="showing-count" class="text-brand-600 font-bold">0</span> itens</p>
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+        <!-- Toggle de Visualização (Funcional) -->
+        <div class="hidden sm:flex bg-gray-100 p-1 rounded-lg mr-2">
+            <button onclick="setView('grid')" id="btn-view-grid" class="p-1.5 rounded-md shadow-sm transition-all bg-white text-gray-800"><i class="ph-bold ph-squares-four"></i></button>
+            <button onclick="setView('list')" id="btn-view-list" class="p-1.5 rounded-md transition-all text-gray-400 hover:text-gray-600"><i class="ph-bold ph-list-dashes"></i></button>
+        </div>
+        
+        <div class="h-8 w-px bg-gray-200 hidden sm:block mx-1"></div>
+        
+        <div class="relative w-full sm:w-52 group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="ph ph-arrows-down-up text-gray-400 group-focus-within:text-brand-500 transition-colors"></i>
+            </div>
+            <select id="sort-select" onchange="applyFilters()" class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 focus:bg-white focus:border-brand-500 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-brand-100 outline-none cursor-pointer font-medium appearance-none transition-all">
+                <option value="relevance">Relevância</option>
+                <option value="low-high">Menor Preço</option>
+                <option value="high-low">Maior Preço</option>
+                <option value="rating">Melhor Avaliados</option>
+            </select>
+            <i class="ph-bold ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-focus-within:text-brand-500 transition-colors"></i>
+        </div>
+    </div>
+</div>
