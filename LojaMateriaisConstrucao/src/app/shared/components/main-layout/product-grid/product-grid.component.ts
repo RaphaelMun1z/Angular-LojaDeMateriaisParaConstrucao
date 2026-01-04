@@ -22,6 +22,8 @@ export class ProductGridComponent {
     private router = inject(Router);
     
     @Input() products: Produto[] = []; 
+    
+    // O MainLayout passa o valor aqui. O Angular atualiza automaticamente.
     @Input() viewMode: 'grid' | 'list' = 'grid';
     
     selectedProduct = signal<Produto | null>(null);
@@ -39,9 +41,12 @@ export class ProductGridComponent {
         }
         
         const user = this.authService.currentUser();
-        const clienteId = user?.id; 
+        const clienteId = user?.id; // Usa o ID (UUID)
         
-        if (!clienteId) return; 
+        if (!clienteId) {
+            this.toastr.error('Erro de sessão. Faça login novamente.');
+            return;
+        }
         
         this.carrinhoService.adicionarItem(clienteId, product.id).subscribe({
             next: () => {

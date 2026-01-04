@@ -29,15 +29,13 @@
       }
     </div>
 
-    <!-- Imagem Principal -->
+    <!-- Imagem Placeholder -->
     <i class="ph-duotone ph-image text-6xl text-gray-300 group-hover:scale-110 transition-transform duration-700"></i>
 
     <!-- Botão Favorito -->
     <button (click)="$event.stopPropagation()" class="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100 duration-200 backdrop-blur-sm z-20">
       <i class="ph-fill ph-heart"></i>
     </button>
-
-    <!-- REMOVIDO: Ação de Navegação (Seta no Hover) -->
   </div>
 
   <!-- CONTEÚDO -->
@@ -48,22 +46,19 @@
       'flex-1 w-full': viewMode === 'list'
     }">
     
-    <!-- Topo do Conteúdo -->
+    <!-- Topo -->
     <div [ngClass]="{'flex justify-between items-start': viewMode === 'list'}">
       <div class="w-full">
-        <!-- Categoria -->
         <div class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1 flex justify-between items-center">
           <span>{{ product.categoria?.nome || 'Geral' }}</span>
           <span class="text-gray-400 font-mono">{{ product.codigoControle }}</span>
         </div>
 
-        <!-- Título -->
         <h3 class="font-bold text-gray-800 text-sm leading-snug mb-2 line-clamp-2 min-h-[2.5em] hover:text-brand-600 transition-colors" 
             [title]="product.titulo">
           {{ product.titulo }}
         </h3>
 
-        <!-- Estoque Baixo -->
         @if (product.estoque > 0 && product.estoque < 5) {
           <div class="mb-2">
             <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 w-fit">
@@ -74,7 +69,7 @@
       </div>
     </div>
 
-    <!-- Descrição (Apenas Lista) -->
+    <!-- Descrição (Só aparece em lista) -->
     @if (viewMode === 'list') {
       <p class="text-sm text-gray-500 mt-2 mb-4 line-clamp-2">
         {{ product.descricao }}
@@ -107,7 +102,7 @@
         </div>
       </div>
 
-      <!-- Botões de Ação -->
+      <!-- Botões -->
       <div class="flex gap-2" [ngClass]="{'w-full sm:w-auto': viewMode === 'list'}">
         <button (click)="$event.stopPropagation(); onCardClick()" 
                 class="flex-1 border border-gray-200 text-gray-600 font-bold py-2 px-4 rounded-lg hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition-all text-xs uppercase tracking-wide whitespace-nowrap">

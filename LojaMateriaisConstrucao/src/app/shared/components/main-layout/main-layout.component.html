@@ -1,28 +1,60 @@
 <div class="container mx-auto px-4 pt-28 pb-12 flex flex-col lg:flex-row gap-8 relative min-h-screen">
     
-    <app-filter-sidebar></app-filter-sidebar>
+    <div class="lg:w-72 shrink-0 z-40" 
+         [class.hidden]="!isMobileFilterOpen()" 
+         [class.block]="isMobileFilterOpen()" 
+         class="hidden lg:block">
+         
+        <app-filter-sidebar 
+            (filterChange)="aplicarFiltros($event)"
+            (close)="isMobileFilterOpen.set(false)">
+        </app-filter-sidebar>
+    </div>
     
-    <!-- Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-gray-900/50 z-30 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="sidebar-overlay" 
+         class="fixed inset-0 bg-gray-900/50 z-30 lg:hidden backdrop-blur-sm transition-opacity"
+         [class.hidden]="!isMobileFilterOpen()"
+         (click)="isMobileFilterOpen.set(false)">
+    </div>
     
-    <!-- Conteúdo Principal -->
     <main class="flex-1 w-full min-w-0">
         
         <app-hero-carousel></app-hero-carousel>
         
-        <app-grid-header></app-grid-header>
+        <div class="lg:hidden mb-4 flex justify-end">
+             <button (click)="isMobileFilterOpen.set(true)" 
+                     class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50">
+                <i class="ph-bold ph-faders"></i> Filtrar
+             </button>
+        </div>
+
+        <app-grid-header
+            [totalItems]="totalItems()"
+            [viewMode]="viewMode()"
+            (viewModeChange)="alterarVisualizacao($event)"
+            (sortChange)="aplicarOrdenacao($event)">
+        </app-grid-header>
         
         <div class="container mx-auto p-6">
             @if (loading()) {
-                <p>Carregando produtos...</p>
+                <div class="py-20 text-center">
+                    <i class="ph-duotone ph-spinner animate-spin text-4xl text-brand-600 mb-4"></i>
+                    <p class="text-gray-500">Carregando produtos...</p>
+                </div>
             } @else {
-                <app-product-grid [products]="produtos()"></app-product-grid>
+                <app-product-grid 
+                    [products]="produtos()"
+                    viewMode="grid">
+                </app-product-grid>
+
+                @if (produtos().length === 0) {
+                    <app-empty-state></app-empty-state>
+                }
             }
         </div>
         
-        <app-empty-state></app-empty-state>
-        
-        <!-- Paginação -->
-        <div class="mt-12 flex justify-center" id="pagination-container"></div>
+        <div class="mt-12 flex justify-center" id="pagination-container">
+            
+        </div>
     </main>
 </div>

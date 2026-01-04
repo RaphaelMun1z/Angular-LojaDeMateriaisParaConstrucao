@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FilterState } from '../../../interfaces/FilterState';
-import { FILTER_OPTIONS } from '../../../mocks/FILTER_OPTIONS';
 import { NgxSliderModule, Options } from '@angular-slider/ngx-slider';
+import { Categoria, ProdutoFiltro } from '../../../../models/catalogo.models';
+import { CatalogoService } from '../../../../services/catalogo.service';
 
 @Component({
     selector: 'app-filter-sidebar',
@@ -12,48 +12,58 @@ import { NgxSliderModule, Options } from '@angular-slider/ngx-slider';
     styleUrl: './filter-sidebar.component.css'
 })
 
-export class FilterSidebarComponent {
-    options = FILTER_OPTIONS;
+export class FilterSidebarComponent implements OnInit {
+    private catalogoService = inject(CatalogoService);
+    
+    categories = signal<Categoria[]>([]);
     
     sliderOptions: Options = {
         floor: 0,
-        ceil: 5000,
-        step: 10,
-        showTicks: false
+        ceil: 10000,
+        step: 50,
+        translate: (value: number): string => {
+            return 'R$' + value;
+        }
     };
     
     sections = {
         categories: true,
         price: true,
-        brands: true,
-        availability: true,
-        rating: true
+        availability: true
     };
     
-    filters: FilterState = {
-        categories: [],
-        brands: [],
-        minPrice: 0,
-        maxPrice: 5000,
-        inStock: false,
-        onSale: false,
-        rating: 'all'
+    filters: ProdutoFiltro = {
+        categoriaId: '',
+        precoMin: 0,
+        precoMax: 10000,
+        apenasAtivos: true
     };
     
-    @Output() filterChange = new EventEmitter<FilterState>();
+    inStockOnly = false;
+    
+    @Output() filterChange = new EventEmitter<ProdutoFiltro>();
     @Output() close = new EventEmitter<void>();
+    
+    ngOnInit() {
+        this.loadCategories();
+    }
+    
+    loadCategories() {
+        this.catalogoService.listarCategoriasAtivas({ page: 0, size: 100 }).subscribe({
+            next: (page) => this.categories.set(page.content),
+            error: (err) => console.error('Erro ao carregar categorias', err)
+        });
+    }
     
     toggleSection(section: keyof typeof this.sections) {
         this.sections[section] = !this.sections[section];
     }
     
-    onArrayFilterChange(event: Event, type: 'categories' | 'brands', value: string) {
-        const isChecked = (event.target as HTMLInputElement).checked;
-        
-        if (isChecked) {
-            this.filters[type].push(value);
+    onCategoryChange(categoryId: string) {
+        if (this.filters.categoriaId === categoryId) {
+            this.filters.categoriaId = '';
         } else {
-            this.filters[type] = this.filters[type].filter(item => item !== value);
+            this.filters.categoriaId = categoryId;
         }
         this.emitFilters();
     }
@@ -62,20 +72,29 @@ export class FilterSidebarComponent {
         this.emitFilters();
     }
     
+    onAvailabilityChange() {
+        this.emitFilters();
+    }
+    
     resetFilters() {
         this.filters = {
-            categories: [],
-            brands: [],
-            minPrice: 0,
-            maxPrice: 5000,
-            inStock: false,
-            onSale: false,
-            rating: 'all'
+            categoriaId: '',
+            precoMin: 0,
+            precoMax: 10000,
+            apenasAtivos: true
         };
+        this.inStockOnly = false;
         this.emitFilters();
     }
     
     private emitFilters() {
-        this.filterChange.emit({ ...this.filters });
+        const filtersToEmit: ProdutoFiltro = {
+            categoriaId: this.filters.categoriaId || undefined,
+            precoMin: this.filters.precoMin,
+            precoMax: this.filters.precoMax,
+            apenasAtivos: true
+        };
+        
+        this.filterChange.emit(filtersToEmit);
     }
 }

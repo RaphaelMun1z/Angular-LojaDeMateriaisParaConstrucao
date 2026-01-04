@@ -52,8 +52,12 @@ export class CatalogoService {
     
     // Categorias
     carregarCategoriasAtivas() {
-        this.http.get<Page<Categoria>>(`${this.apiUrl}/categorias/ativas`)
-        .subscribe(page => this._categorias.set(page.content));
+        this.listarCategoriasAtivas().subscribe(page => this._categorias.set(page.content));
+    }
+    
+    listarCategoriasAtivas(pageable?: PageableParams): Observable<Page<Categoria>> {
+        const params = this.buildPageParams(pageable);
+        return this.http.get<Page<Categoria>>(`${this.apiUrl}/categorias/ativas`, { params });
     }
     
     listarTodasCategoriasAdmin(pageable?: PageableParams): Observable<Page<Categoria>> {
