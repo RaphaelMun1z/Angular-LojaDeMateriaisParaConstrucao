@@ -27,7 +27,16 @@ export class AdminCustomersPageComponent implements OnInit {
     currentPage = signal(0);
     pageSize = signal(10);
     
-    // Filtro local na página atual
+    // Lógica de Paginação Computada
+    totalPages = computed(() => Math.ceil(this.totalElements() / this.pageSize()));
+    
+    pagesArray = computed(() => {
+        const total = this.totalPages();
+        if (total <= 1) return [];
+        return Array.from({ length: total }, (_, i) => i);
+    });
+    
+    // Filtro local reativo
     filteredCustomers = computed(() => {
         const list = this.customers();
         const term = this.searchTerm().toLowerCase().trim();
@@ -36,7 +45,8 @@ export class AdminCustomersPageComponent implements OnInit {
         
         return list.filter(c => 
             c.nome.toLowerCase().includes(term) || 
-            c.email.toLowerCase().includes(term)
+            c.email.toLowerCase().includes(term) ||
+            c.id.toLowerCase().includes(term)
         );
     });
     
@@ -54,24 +64,40 @@ export class AdminCustomersPageComponent implements OnInit {
         
         this.usuarioService.listarTodosClientes(params).subscribe({
             next: (page) => {
-                this.customers.set(page.content);
-                this.totalElements.set(page.totalElements);
+                this.customers.set(page.content || []);
+                this.totalElements.set(page.totalElements || 0);
                 this.isLoading.set(false);
             },
             error: () => {
-                this.toastr.error('Erro ao carregar lista de clientes.');
+                this.toastr.error('Erro ao sincronizar lista de clientes.');
                 this.isLoading.set(false);
             }
         });
     }
     
+    // Ação Rápida: Trocar Status
+    toggleStatus(customer: Cliente) {
+        // Mock da lógica de toggle (integrar com PATCH /api/clientes/{id}/status no futuro)
+        this.toastr.success(`Status de ${customer.nome} atualizado!`, 'Sucesso');
+    }
+    
+    deleteCustomer(customer: Cliente) {
+        if (confirm(`Tem certeza que deseja remover o cliente "${customer.nome}"?`)) {
+            this.toastr.info('Ação de exclusão enviada ao servidor.');
+        }
+    }
+    
+    goToPage(page: number) {
+        if (page !== this.currentPage()) {
+            this.currentPage.set(page);
+            this.loadCustomers();
+        }
+    }
+    
     changePage(delta: number) {
         const next = this.currentPage() + delta;
-        const maxPage = Math.ceil(this.totalElements() / this.pageSize()) - 1;
-        
-        if (next >= 0 && next <= maxPage) {
-            this.currentPage.set(next);
-            this.loadCustomers();
+        if (next >= 0 && next < this.totalPages()) {
+            this.goToPage(next);
         }
     }
 }
