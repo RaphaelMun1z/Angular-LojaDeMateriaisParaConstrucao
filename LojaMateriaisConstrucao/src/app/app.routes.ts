@@ -21,6 +21,8 @@ import { RegisterCustomerPageComponent } from './pages/admin/register-customer-p
 import { AdminOrdersPageComponent } from './pages/admin/admin-orders-page/admin-orders-page.component';
 import { MainPageComponent } from './pages/admin/main-page/main-page.component';
 import { AdministrativeReportsPageComponent } from './pages/admin/administrative-reports-page/administrative-reports-page.component';
+import { adminGuard, authGuard } from './core/guards/auth.guard';
+import { ForbiddenPageComponent } from './pages/forbidden-page/forbidden-page.component';
 
 export const routes: Routes = [
     {
@@ -34,21 +36,44 @@ export const routes: Routes = [
         path: '',
         component: LayoutWithHeaderComponent,
         children: [
+            // Rotas Públicas (Vitrine)
             { path: 'inicio', component: HomePageComponent },
-            { path: 'produto', component: ProductPageComponent },
+            { path: 'produto/:id', component: ProductPageComponent },
             { path: 'carrinho', component: CartPageComponent },
-            { path: 'finalizar-compra', component: FinalizePurchasePageComponent },
-            { path: 'pedido', component: OrderPageComponent },
-            { path: 'pedido-confirmado', component: OrderConfirmedPageComponent },
-            { path: 'perfil', component: ProfilePageComponent },
             { path: 'faq', component: FaqPageComponent },
-            { path: 'produtos-favoritos', component: MyFavoriteProductsPageComponent },
             { path: 'sobre-nos', component: AboutUsPageComponent },
             { path: 'politica-de-privacidade', component: PrivacyPolicyPageComponent },
+            
+            // Rotas Protegidas (Requer Login)
+            { 
+                path: 'finalizar-compra', 
+                component: FinalizePurchasePageComponent,
+                canActivate: [authGuard] 
+            },
+            { 
+                path: 'pedido/:id', 
+                component: OrderPageComponent, 
+                canActivate: [authGuard]
+            },
+            { 
+                path: 'pedido-confirmado', 
+                component: OrderConfirmedPageComponent,
+                canActivate: [authGuard]
+            },
+            { 
+                path: 'perfil', 
+                component: ProfilePageComponent,
+                canActivate: [authGuard]
+            },
+            { 
+                path: 'produtos-favoritos', 
+                component: MyFavoriteProductsPageComponent,
+                canActivate: [authGuard]
+            },
         ]
     },
     
-    // --- Páginas de Autenticação ---
+    // --- Páginas de Autenticação (Públicas) ---
     {
         path: 'login',
         component: LoginPageComponent
@@ -62,10 +87,11 @@ export const routes: Routes = [
         component: RecoverPasswordPageComponent
     },
     
-    // --- Área Administrativa ---
+    // --- Área Administrativa (Protegida) ---
     {
         path: 'dashboard-admin',
         component: DashboardAdminPageComponent,
+        canActivate: [authGuard, adminGuard],
         children: [
             { path: '', component: MainPageComponent },
             { path: 'registrar-produto', component: RegisterProductPageComponent },
@@ -75,7 +101,12 @@ export const routes: Routes = [
         ]
     },
     
-    // Rota coringa
+    { 
+        path: 'acesso-negado', 
+        component: ForbiddenPageComponent
+    },
+    
+    // Rota coringa (404)
     {
         path: '**',
         component: NotFoundPageComponent

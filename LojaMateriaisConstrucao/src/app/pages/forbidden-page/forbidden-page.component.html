@@ -1,0 +1,41 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full text-center space-y-8 animate-fade-in">
+        
+        <!-- Ícone / Ilustração -->
+        <div class="flex justify-center">
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-red-100 mb-2 ring-8 ring-red-50">
+                <i class="ph-duotone ph-lock-key text-5xl text-red-600"></i>
+            </div>
+        </div>
+
+        <!-- Mensagem Principal -->
+        <div>
+            <h1 class="mt-6 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">
+                Acesso Negado
+            </h1>
+            <p class="mt-4 text-lg text-gray-500">
+                Desculpe, não tem permissão para aceder a esta área. Esta página é restrita a administradores.
+            </p>
+        </div>
+
+        <!-- Ações -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <a routerLink="/" 
+               class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                <i class="ph-bold ph-house mr-2"></i>
+                Voltar ao Início
+            </a>
+            
+            <a routerLink="/login" 
+               class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <i class="ph-bold ph-sign-in mr-2"></i>
+                Trocar de Conta
+            </a>
+        </div>
+
+        <!-- Rodapé -->
+        <p class="mt-8 text-xs text-gray-400">
+            Código de Erro: 403 Forbidden
+        </p>
+    </div>
+</div>

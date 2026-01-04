@@ -1,7 +1,7 @@
 import { Injectable, signal, inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { RegisterRequest, TokenResponse, User } from '../../models/auth.models';
+import { LoginRequest, RegisterRequest, TokenResponse, User } from '../../models/auth.models'; 
 import { tap, map, catchError, of, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -13,14 +13,20 @@ export class AuthService {
     private router = inject(Router);
     private apiUrl = `${environment.apiUrl}/auth`;
     
-    private _accessToken = signal<string | null>(localStorage.getItem('access_token'));
+    // --- ESTADO (Signals) ---
     
+    private _accessToken = signal<string | null>(localStorage.getItem('access_token'));
     public accessToken = this._accessToken.asReadonly();
     
     private _currentUser = signal<User | null>(null);
     public currentUser = this._currentUser.asReadonly();
     
     public isAuthenticated = computed(() => !!this._accessToken());
+    
+    // --- COMPUTES DE PERMISSÃO (Novos) ---
+    
+    // Verifica se é Admin
+    public isAdmin = computed(() => this.hasRole('ROLE_ADMIN'));
     
     constructor() {
         const token = this._accessToken();
@@ -29,7 +35,28 @@ export class AuthService {
         }
     }
     
-    // --- AÇÕES ---
+    // --- MÉTODOS DE VERIFICAÇÃO (Novos) ---
+    
+    /**
+    * Verifica se o usuário tem uma Role ou Permissão específica.
+    * Ex: hasRole('ROLE_ADMIN') ou hasRole('PRODUTO_INSERIR')
+    */
+    hasRole(roleOrPermission: string): boolean {
+        const user = this._currentUser();
+        // O backend envia tudo (Roles e Permissions) dentro do array 'roles' do JWT
+        return user?.roles?.includes(roleOrPermission) ?? false;
+    }
+    
+    /**
+    * Verifica se o usuário tem pelo menos uma das roles passadas.
+    */
+    hasAnyRole(roles: string[]): boolean {
+        const user = this._currentUser();
+        if (!user || !user.roles) return false;
+        return roles.some(role => user.roles!.includes(role));
+    }
+    
+    // --- AÇÕES (Mantidas iguais) ---
     
     login(credentials: LoginRequest): Observable<boolean> {
         return this.http.post<TokenResponse>(`${this.apiUrl}/signin`, credentials).pipe(
@@ -81,10 +108,13 @@ export class AuthService {
     private decodeAndSetUser(token: string) {
         try {
             const payload = this.parseJwt(token);
+            
             const user: User = {
                 email: payload.sub,
-                roles: payload.roles
+                // Garante que roles seja sempre um array, mesmo que venha vazio
+                roles: Array.isArray(payload.roles) ? payload.roles : [] 
             };
+            console.log(user)
             this._currentUser.set(user);
         } catch (e) {
             console.error('Erro ao decodificar token', e);

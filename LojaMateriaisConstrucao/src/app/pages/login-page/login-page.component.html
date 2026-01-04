@@ -136,17 +136,36 @@
 </div>
 
 <!-- Toast Notification -->
-<div class="fixed top-4 right-4 md:top-8 md:right-8 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-500 z-100 transform border border-gray-700"
+<div class="fixed top-4 right-4 md:top-8 md:right-8 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-500 z-50 transform border"
 [class.translate-x-full]="!showToast()"
 [class.opacity-0]="!showToast()"
 [class.translate-x-0]="showToast()"
-[class.opacity-100]="showToast()">
-<div class="bg-brand-500/20 p-2 rounded-full">
-    <i class="ph-fill ph-check-circle text-brand-400 text-xl"></i>
-</div>
+[class.opacity-100]="showToast()"
+[class.bg-gray-900]="toastData().type === 'success'"
+[class.text-white]="toastData().type === 'success'"
+[class.border-gray-700]="toastData().type === 'success'"
+[class.bg-white]="toastData().type === 'error'"
+[class.text-red-600]="toastData().type === 'error'"
+[class.border-red-100]="toastData().type === 'error'">
+
+<!-- Ícone Sucesso -->
+@if (toastData().type === 'success') {
+    <div class="bg-brand-500/20 p-2 rounded-full">
+        <i class="ph-fill ph-check-circle text-brand-400 text-xl"></i>
+    </div>
+} 
+<!-- Ícone Erro -->
+@else {
+    <div class="bg-red-50 p-2 rounded-full">
+        <i class="ph-fill ph-warning-circle text-red-500 text-xl"></i>
+    </div>
+}
+
 <div>
-    <h4 class="font-bold text-sm">Bem-vindo!</h4>
-    <p class="text-xs text-gray-300">Login realizado com sucesso.</p>
+    <h4 class="font-bold text-sm">{{ toastData().title }}</h4>
+    <p class="text-xs" [class.text-gray-300]="toastData().type === 'success'" [class.text-red-800]="toastData().type === 'error'">
+        {{ toastData().message }}
+    </p>
 </div>
 </div>
 

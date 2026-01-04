@@ -29,10 +29,8 @@ export class ProductGridComponent {
     }
     
     openPopup(event: MouseEvent, product: ProductFullDetails) {
-        console.log('Abrir Quick View para:', product.id, 'em', event.clientX, event.clientY);
     }
     
     closePopup() {
-        console.log('Fechar Quick View');
     }
 }
