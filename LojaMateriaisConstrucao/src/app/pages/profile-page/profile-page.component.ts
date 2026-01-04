@@ -1,96 +1,158 @@
-import { Component } from '@angular/core';
-import { Order, Address } from '../../shared/interfaces/Order';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../core/auth/auth.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { MyOrdersPageComponent } from '../my-orders-page/my-orders-page.component';
+import { MyAddressesComponent } from '../../shared/components/profile/my-addresses/my-addresses.component';
+import { MyPersonalDataComponent } from "../../shared/components/profile/my-personal-data/my-personal-data.component";
 
 @Component({
     selector: 'app-profile-page',
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxMaskDirective, NgxMaskPipe, MyOrdersPageComponent, MyAddressesComponent, MyPersonalDataComponent],
+    providers: [provideNgxMask()],
     templateUrl: './profile-page.component.html',
     styleUrl: './profile-page.component.css'
 })
 
-export class ProfilePageComponent {
-    // Controle de Estado
-    activeSection: 'personal' | 'orders' | 'addresses' | 'wallet' = 'personal';
-    showToast = false;
-    toastMessage = '';
+export class ProfilePageComponent implements OnInit {
+    private authService = inject(AuthService);
+    public usuarioService = inject(UsuarioService);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
+    private toastr = inject(ToastrService);
+    private fb = inject(FormBuilder);
     
-    // Dados Mockados - Usuário
-    user = {
-        name: 'Carlos Silva',
-        cpf: '***.456.789-**',
-        email: 'carlos.silva@email.com',
-        phone: '(11) 98765-4321',
-        memberSince: '2023',
-        avatar: 'https://ui-avatars.com/api/?name=Carlos+Silva&background=0D8ABC&color=fff&size=128'
-    };
+    // Estado da UI
+    activeSection = signal<'personal' | 'orders' | 'addresses' | 'wallet'>('personal');
+    showAddressForm = signal(false);
+    isLoading = signal(false);
     
-    // Dados Mockados - Pedidos
-    orders: Order[] = [
-        {
-            id: '12345',
-            date: 'Realizado em 15 de Out, 2023',
-            status: 'Entregue',
-            statusColor: 'bg-green-500',
-            statusBg: 'bg-green-100 border-green-200',
-            statusText: 'text-green-700',
-            total: 459.90,
-            itemsCount: 4, // 2 imagens + 2 escondidas
-            images: [
-                'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=150&q=80',
-                'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=150&q=80'
-            ],
-            actionLabel: 'Comprar Novamente'
-        },
-        {
-            id: '12399',
-            date: 'Realizado em 28 de Dez, 2023',
-            status: 'Em Trânsito',
-            statusColor: 'bg-blue-500',
-            statusBg: 'bg-blue-100 border-blue-200',
-            statusText: 'text-blue-700',
-            total: 129.90,
-            itemsCount: 1,
-            images: [
-                'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=150&q=80'
-            ],
-            actionLabel: 'Rastrear'
-        }
-    ];
+    // Formulário de Endereço (Mesma estrutura do checkout)
+    addressForm: FormGroup = this.fb.group({
+        apelido: ['', Validators.required],
+        cep: ['', [Validators.required, Validators.minLength(8)]],
+        logradouro: ['', Validators.required],
+        numero: ['', Validators.required],
+        complemento: [''],
+        bairro: ['', Validators.required],
+        cidade: ['', Validators.required],
+        uf: ['', [Validators.required, Validators.maxLength(2)]],
+        principal: [false]
+    });
     
-    // Dados Mockados - Endereços
-    addresses: Address[] = [
-        {
-            id: 1,
-            label: 'Casa',
-            street: 'Rua das Flores, 123 - Centro',
-            city: 'São Paulo - SP',
-            zip: '01000-000',
-            isMain: true
-        }
-    ];
+    // Dados do Usuário (Mock parcial pois a API de 'Meus Dados' ainda não foi implementada no backend)
+    user = signal({
+        name: 'Usuário',
+        email: '',
+        cpf: '',
+        phone: '',
+        memberSince: new Date().getFullYear().toString(),
+        avatar: ''
+    });
     
-    // Métodos
-    setActiveSection(section: 'personal' | 'orders' | 'addresses' | 'wallet') {
-        this.activeSection = section;
+    // Acessa endereços via Signal do serviço
+    addresses = this.usuarioService.enderecos;
+    
+    constructor() {
+        // Carrega dados iniciais
+        effect(() => {
+            const currentUser = this.authService.currentUser();
+            if (currentUser) {
+                this.user.update(u => ({
+                    ...u,
+                    email: currentUser.email,
+                    name: currentUser.email.split('@')[0], // Nome provisório baseado no email
+                    avatar: `https://ui-avatars.com/api/?name=${currentUser.email}&background=0D8ABC&color=fff&size=128`
+                }));
+                
+                if (currentUser.id) {
+                    this.usuarioService.carregarEnderecos(currentUser.id);
+                }
+            }
+        });
     }
     
-    savePersonalData(event: Event) {
-        event.preventDefault();
-        this.displayToast('Dados atualizados com sucesso!');
+    ngOnInit() {
+        // Detecta fragmento na URL para abrir a aba correta (ex: /perfil#pedidos)
+        this.route.fragment.subscribe(fragment => {
+            if (fragment === 'pedidos') {
+                this.setActiveSection('orders');
+            } else if (fragment === 'enderecos') {
+                this.setActiveSection('addresses');
+            }
+        });
+    }
+    
+    setActiveSection(section: 'personal' | 'orders' | 'addresses' | 'wallet') {
+        this.activeSection.set(section);
     }
     
     logout() {
-        // Lógica real de logout iria aqui
-        alert('Logout acionado');
+        this.authService.logout();
     }
     
-    private displayToast(msg: string) {
-        this.toastMessage = msg;
-        this.showToast = true;
-        setTimeout(() => {
-            this.showToast = false;
-        }, 3000);
+    // --- Lógica de Endereços ---
+    
+    toggleAddressForm() {
+        this.showAddressForm.update(v => !v);
+        if (!this.showAddressForm()) {
+            this.addressForm.reset();
+        }
+    }
+    
+    saveAddress() {
+        if (this.addressForm.invalid) {
+            this.addressForm.markAllAsTouched();
+            return;
+        }
+        
+        const userId = this.authService.currentUser()?.id;
+        if (!userId) return;
+        
+        this.isLoading.set(true);
+        const newAddress = this.addressForm.value;
+        
+        this.usuarioService.adicionarEndereco(userId, newAddress).subscribe({
+            next: () => {
+                this.toastr.success('Endereço cadastrado com sucesso!');
+                this.toggleAddressForm();
+            },
+            error: () => this.toastr.error('Erro ao salvar endereço.'),
+            complete: () => this.isLoading.set(false)
+        });
+    }
+    
+    deleteAddress(id: string) {
+        const userId = this.authService.currentUser()?.id;
+        if (!userId) return;
+        
+        if (confirm('Tem certeza que deseja excluir este endereço?')) {
+            this.usuarioService.removerEndereco(id, userId).subscribe({
+                next: () => this.toastr.info('Endereço removido.'),
+                error: () => this.toastr.error('Erro ao remover endereço.')
+            });
+        }
+    }
+    
+    setAsPrimary(id: string) {
+        const userId = this.authService.currentUser()?.id;
+        if (!userId) return;
+        
+        this.usuarioService.definirComoPrincipal(id, userId).subscribe({
+            next: () => this.toastr.success('Endereço principal atualizado.'),
+            error: () => this.toastr.error('Erro ao atualizar.')
+        });
+    }
+    
+    // --- Lógica de Dados Pessoais ---
+    
+    savePersonalData(event: Event) {
+        event.preventDefault();
+        // Como ainda não temos endpoint PUT /clientes/{id}, apenas simulamos
+        this.toastr.info('Funcionalidade de atualização de perfil em breve!', 'Aviso');
     }
 }

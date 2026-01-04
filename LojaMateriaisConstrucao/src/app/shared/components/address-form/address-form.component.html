@@ -1,0 +1,64 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-4 border border-gray-200 rounded-xl bg-gray-50 animate-fade-in">
+    <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="ph-bold ph-map-pin-plus text-brand-600"></i> 
+        {{ initialData ? 'Editar Endereço' : 'Novo Endereço' }}
+    </h4>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div class="col-span-2 md:col-span-1">
+            <label class="text-xs font-bold text-gray-500 uppercase">Apelido (Ex: Casa)</label>
+            <input type="text" formControlName="apelido" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Minha Casa">
+        </div>
+        
+        <div class="col-span-2 md:col-span-1 relative">
+            <label class="text-xs font-bold text-gray-500 uppercase flex justify-between">
+                CEP 
+                @if (isLoadingCep()) { <span class="text-brand-600 text-[10px] animate-pulse">Buscando...</span> }
+            </label>
+            <div class="relative">
+                <input type="text" formControlName="cep" mask="00000-000" (blur)="buscarCep()" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none pr-10" placeholder="00000-000">
+                <button type="button" (click)="buscarCep()" class="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-gray-400 hover:text-brand-600" title="Buscar CEP">
+                    <i class="ph-bold" [class]="isLoadingCep() ? 'ph-spinner animate-spin' : 'ph-magnifying-glass'"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="col-span-2">
+            <label class="text-xs font-bold text-gray-500 uppercase">Endereço</label>
+            <input type="text" formControlName="logradouro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        
+        <div>
+            <label class="text-xs font-bold text-gray-500 uppercase">Número</label>
+            <input type="text" formControlName="numero" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        
+        <div>
+            <label class="text-xs font-bold text-gray-500 uppercase">Complemento</label>
+            <input type="text" formControlName="complemento" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        
+        <div>
+            <label class="text-xs font-bold text-gray-500 uppercase">Bairro</label>
+            <input type="text" formControlName="bairro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        
+        <div>
+            <label class="text-xs font-bold text-gray-500 uppercase">Cidade</label>
+            <input type="text" formControlName="cidade" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        
+        <div>
+            <label class="text-xs font-bold text-gray-500 uppercase">Estado (UF)</label>
+            <input type="text" formControlName="uf" maxlength="2" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none uppercase">
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-3 mt-6">
+        <button type="button" (click)="cancel.emit()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-600 font-bold hover:bg-gray-100 transition-colors">Cancelar</button>
+        <button type="submit" [disabled]="form.invalid" class="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-colors disabled:opacity-50">
+            {{ initialData ? 'Atualizar' : 'Salvar' }} Endereço
+        </button>
+    </div>
+</form>

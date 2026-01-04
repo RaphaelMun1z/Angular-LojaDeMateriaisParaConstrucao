@@ -1,0 +1,145 @@
+<div class="space-y-6 animate-fade-in">
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8">
+        
+        <!-- Cabeçalho da Seção -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <i class="ph-duotone ph-map-pin text-orange-500 text-2xl"></i> Meus Endereços
+            </h2>
+            @if (!showAddressForm()) {
+                <button (click)="toggleAddressForm()" class="text-sm font-bold text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
+                    <i class="ph-bold ph-plus"></i> Novo Endereço
+                </button>
+            }
+        </div>
+        
+        <!-- Formulário de Cadastro -->
+        @if (showAddressForm()) {
+            <form [formGroup]="addressForm" (ngSubmit)="saveAddress()" class="mb-8 p-4 border border-gray-200 rounded-xl bg-gray-50 animate-fade-in">
+                <h4 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Cadastrar Novo Endereço</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Apelido -->
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Apelido (Ex: Casa)</label>
+                        <input type="text" formControlName="apelido" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Minha Casa">
+                    </div>
+                    
+                    <!-- CEP com Busca -->
+                    <div class="col-span-2 md:col-span-1 relative">
+                        <label class="text-xs font-bold text-gray-500 uppercase flex justify-between">
+                            CEP 
+                            @if (isLoadingCep()) {
+                                <span class="text-brand-600 text-[10px] animate-pulse">Buscando...</span>
+                            }
+                        </label>
+                        <div class="relative">
+                            <input 
+                            type="text" 
+                            formControlName="cep" 
+                            mask="00000-000" 
+                            (blur)="buscarCep()" 
+                            class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none pr-10" 
+                            placeholder="00000-000">
+                            
+                            @if (isLoadingCep()) {
+                                <div class="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2">
+                                    <i class="ph-bold ph-spinner animate-spin text-brand-600"></i>
+                                </div>
+                            } @else {
+                                <button type="button" (click)="buscarCep()" class="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-gray-400 hover:text-brand-600 cursor-pointer" title="Buscar CEP">
+                                    <i class="ph-bold ph-magnifying-glass"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Logradouro -->
+                    <div class="col-span-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Endereço</label>
+                        <input type="text" formControlName="logradouro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Rua, Avenida...">
+                    </div>
+                    
+                    <!-- Número -->
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Número</label>
+                        <input type="text" formControlName="numero" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <!-- Complemento -->
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Complemento</label>
+                        <input type="text" formControlName="complemento" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Apto, Bloco...">
+                    </div>
+                    
+                    <!-- Bairro -->
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Bairro</label>
+                        <input type="text" formControlName="bairro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <!-- Cidade -->
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Cidade</label>
+                        <input type="text" formControlName="cidade" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    
+                    <!-- UF -->
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Estado (UF)</label>
+                        <input type="text" formControlName="uf" maxlength="2" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none uppercase" placeholder="SP">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 mt-4 justify-end">
+                    <button type="button" (click)="toggleAddressForm()" class="px-4 py-2 text-gray-600 font-bold text-xs hover:bg-gray-200 rounded-lg transition-colors">Cancelar</button>
+                    <button type="submit" [disabled]="addressForm.invalid || isLoading()" class="px-4 py-2 bg-orange-600 text-white font-bold text-xs rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors flex items-center gap-2">
+                        @if(isLoading()) { <i class="ph-bold ph-spinner animate-spin"></i> }
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        }
+        
+        <!-- Lista de Endereços -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @for (addr of addresses(); track addr.id) {
+                <div class="bg-white rounded-2xl p-6 border shadow-sm relative group hover:shadow-md transition-all" 
+                [class.border-orange-500]="addr.principal" 
+                [class.border-gray-200]="!addr.principal">
+                
+                @if (addr.principal) {
+                    <div class="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">PRINCIPAL</div>
+                } @else {
+                    <button (click)="setAsPrimary(addr.id)" class="absolute top-4 right-4 text-gray-300 hover:text-yellow-500 transition-colors" title="Definir como principal">
+                        <i class="ph-bold ph-star text-lg"></i>
+                    </button>
+                }
+                
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="bg-orange-50 text-orange-600 p-2 rounded-lg shrink-0">
+                        <i class="ph-fill ph-house text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900">{{ addr.apelido }}</h4>
+                        <p class="text-sm text-gray-500 leading-snug mt-1">
+                            {{ addr.logradouro }}, {{ addr.numero }}<br>
+                            {{ addr.bairro }}, {{ addr.cidade }} - {{ addr.uf }}<br>
+                            CEP: {{ addr.cep | mask: '00000-000' }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <button (click)="deleteAddress(addr.id)" class="text-xs font-bold text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors"><i class="ph-bold ph-trash"></i> Excluir</button>
+                </div>
+            </div>
+        }
+        @empty {
+            <div class="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                <p>Nenhum endereço cadastrado.</p>
+            </div>
+        }
+    </div>
+</div>
+</div>

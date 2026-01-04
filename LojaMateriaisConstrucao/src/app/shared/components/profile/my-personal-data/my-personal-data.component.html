@@ -1,0 +1,104 @@
+<div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-10 animate-fade-in relative overflow-hidden">
+    
+    <!-- Elemento Decorativo de Fundo -->
+    <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+        <i class="ph-duotone ph-fingerprint text-9xl text-brand-900"></i>
+    </div>
+
+    <!-- Cabeçalho da Seção -->
+    <div class="relative z-10 border-b border-gray-100 pb-8 mb-8">
+        <div class="flex items-center gap-4">
+            <div class="bg-brand-50 p-3 rounded-2xl text-brand-600 shadow-sm border border-brand-100/50">
+                <i class="ph-duotone ph-user-circle text-3xl"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-gray-900 leading-tight">Informações Pessoais</h2>
+                <p class="text-sm text-gray-500 mt-1">Gerencie seus dados de identificação e contato.</p>
+            </div>
+        </div>
+    </div>
+    
+    <form (submit)="savePersonalData($event)" class="relative z-10 space-y-8 max-w-3xl">
+        
+        <!-- Grid de Campos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+            
+            <!-- Email -->
+            <div class="group">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">E-mail de Acesso</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-envelope text-xl text-gray-400 group-hover:text-brand-500 transition-colors"></i>
+                    </div>
+                    <input type="email" [value]="user().email" disabled 
+                           class="w-full bg-gray-50/50 border border-gray-200 text-gray-600 font-semibold text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none cursor-not-allowed group-hover:bg-gray-50 group-hover:border-gray-300 transition-all shadow-sm">
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <i class="ph-bold ph-lock-key text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nome -->
+            <div class="group">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Nome de Exibição</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-user text-xl text-gray-400 group-hover:text-brand-500 transition-colors"></i>
+                    </div>
+                    <input type="text" [value]="user().name" disabled 
+                           class="w-full bg-gray-50/50 border border-gray-200 text-gray-600 font-semibold text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none cursor-not-allowed group-hover:bg-gray-50 group-hover:border-gray-300 transition-all shadow-sm">
+                </div>
+            </div>
+
+            <!-- CPF -->
+            <div class="group">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">CPF</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-identification-card text-xl text-gray-400 group-hover:text-brand-500 transition-colors"></i>
+                    </div>
+                    <input type="text" value="***.***.***-**" disabled 
+                           class="w-full bg-gray-50/50 border border-gray-200 text-gray-600 font-semibold text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none cursor-not-allowed group-hover:bg-gray-50 group-hover:border-gray-300 transition-all shadow-sm">
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <i class="ph-bold ph-lock-key text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telefone -->
+            <div class="group">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Telefone</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-phone text-xl text-gray-400 group-hover:text-brand-500 transition-colors"></i>
+                    </div>
+                    <input type="text" value="(**) *****-****" disabled 
+                           class="w-full bg-gray-50/50 border border-gray-200 text-gray-600 font-semibold text-sm rounded-xl py-3.5 pl-12 pr-4 focus:outline-none cursor-not-allowed group-hover:bg-gray-50 group-hover:border-gray-300 transition-all shadow-sm">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Aviso Informativo -->
+        <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 flex items-start gap-4">
+            <div class="bg-blue-100 text-blue-600 p-2 rounded-lg shrink-0">
+                <i class="ph-fill ph-shield-check text-xl"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-blue-900 mb-1">Dados Protegidos</h4>
+                <p class="text-sm text-blue-700/80 leading-relaxed">
+                    Para sua segurança, informações sensíveis como CPF e E-mail não podem ser alteradas diretamente. 
+                    Caso necessite de atualização, entre em contato com nosso <a href="#" class="font-bold underline hover:text-blue-900">suporte</a>.
+                </p>
+            </div>
+        </div>
+
+        <!-- Botões de Ação (Desabilitados por enquanto) -->
+        <div class="pt-6 border-t border-gray-100 flex justify-end gap-3 opacity-40 pointer-events-none grayscale" title="Em breve">
+            <button type="button" class="px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm bg-white hover:bg-gray-50 transition-colors">Cancelar</button>
+            <button type="submit" class="px-8 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm shadow-lg shadow-brand-500/20 flex items-center gap-2">
+                <i class="ph-bold ph-floppy-disk"></i>
+                Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>
