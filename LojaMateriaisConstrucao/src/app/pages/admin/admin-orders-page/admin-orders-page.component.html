@@ -1,58 +1,44 @@
 <div class="space-y-8 animate-fade-in pb-10 max-w-[1600px] mx-auto">
     
-    <!-- Cabeçalho Simplificado -->
+    <!-- Cabeçalho -->
     <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Pedidos</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Gestão de vendas e logística</p>
+            <p class="text-sm text-gray-500 mt-0.5">Gestão de vendas, pagamentos e logística</p>
         </div>
         
         <div class="flex items-center gap-2">
-            <button class="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-xl transition-all cursor-pointer border border-transparent hover:border-gray-200" title="Exportar">
+            <button class="p-2.5 text-gray-500 hover:text-gray-900 hover:bg-white rounded-xl transition-all cursor-pointer border border-transparent hover:border-gray-200" title="Exportar CSV">
                 <i class="ph-bold ph-download-simple text-xl"></i>
             </button>
+            <!-- Apenas visual, pois o admin geralmente não cria pedidos manuais neste fluxo -->
             <button class="bg-brand-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-sm active:scale-[0.98] cursor-pointer">
                 Novo Pedido
             </button>
         </div>
     </header>
     
-    <!-- Barra de Ferramentas Minimalista -->
+    <!-- Filtros -->
     <section class="flex flex-col md:flex-row gap-4 items-center justify-between px-2">
-        
-        <!-- Pesquisa sem fundo pesado -->
         <div class="relative w-full md:max-w-sm group">
             <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors"></i>
             <input type="text" 
                    [ngModel]="searchTerm()"
                    (ngModelChange)="searchTerm.set($event)"
-                   placeholder="Pesquisar pedidos..." 
+                   placeholder="Pesquisar por ID, cliente ou total..." 
                    class="w-full pl-10 pr-4 py-2 bg-transparent border-b border-gray-200 focus:border-brand-500 transition-all outline-none text-sm text-gray-700 placeholder:text-gray-400">
         </div>
         
-        <!-- Filtros Discretos -->
         <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide w-full md:w-auto">
-            <button (click)="setFilter('all')" 
-                    [ngClass]="activeFilter() === 'all' ? 'text-brand-600 bg-brand-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'"
-                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
-                Todos
-            </button>
-            <button (click)="setFilter('PAGO')" 
-                    [ngClass]="activeFilter() === 'PAGO' ? 'text-green-600 bg-green-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'"
-                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
-                Pagos
-            </button>
-            <button (click)="setFilter('PENDENTE')" 
-                    [ngClass]="activeFilter() === 'PENDENTE' ? 'text-amber-600 bg-amber-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'"
-                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">
-                Pendentes
-            </button>
+            <button (click)="setFilter('all')" [ngClass]="activeFilter() === 'all' ? 'text-brand-600 bg-brand-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">Todos</button>
+            <button (click)="setFilter('PAGO')" [ngClass]="activeFilter() === 'PAGO' ? 'text-green-600 bg-green-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">Pagos</button>
+            <button (click)="setFilter('PENDENTE')" [ngClass]="activeFilter() === 'PENDENTE' ? 'text-amber-600 bg-amber-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">Pendentes</button>
+            <button (click)="setFilter('CANCELADO')" [ngClass]="activeFilter() === 'CANCELADO' ? 'text-red-600 bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap">Cancelados</button>
         </div>
     </section>
 
-    <!-- Tabela Ultra-limpa -->
-    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden relative min-h-[400px]">
-        
+    <!-- Tabela -->
+    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden relative min-h-[500px]">
         @if (isLoading()) {
             <div class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-30 flex items-center justify-center text-brand-600">
                 <i class="ph ph-spinner animate-spin text-3xl"></i>
@@ -62,22 +48,21 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 font-bold">
+                    <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 font-bold bg-gray-50/30">
                         <th class="px-6 py-4">ID</th>
                         <th class="px-6 py-4">Data</th>
                         <th class="px-6 py-4">Cliente</th>
-                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Financeiro</th>
+                        <th class="px-6 py-4 text-center">Logística</th>
                         <th class="px-6 py-4 text-right">Total</th>
-                        <th class="px-6 py-4 text-center w-20"></th>
+                        <th class="px-6 py-4 text-center w-24">Ações</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm divide-y divide-gray-50">
                     @for (order of filteredOrders(); track order.id) {
                         <tr class="hover:bg-gray-50/50 transition-colors group">
                             <td class="px-6 py-5">
-                                <span class="font-mono text-xs font-bold text-gray-900">
-                                    #{{ order.id.substring(0,8) | uppercase }}
-                                </span>
+                                <span class="font-mono text-xs font-bold text-gray-900">#{{ order.id.substring(0,8) | uppercase }}</span>
                             </td>
                             
                             <td class="px-6 py-5 text-gray-500 text-xs">
@@ -93,19 +78,23 @@
                             </td>
 
                             <td class="px-6 py-5">
-                                <div class="flex items-center gap-4">
-                                    <!-- Status Simplificado em Texto -->
-                                    <span [class]="getPaymentBadgeClass(order.status) + ' px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase'">
-                                        {{ order.status === 'PAGO' ? 'Pago' : 'Pendente' }}
+                                <span [class]="getPaymentBadgeClass(order.status) + ' px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase inline-flex items-center gap-1.5'">
+                                    <span class="w-1.5 h-1.5 rounded-full" 
+                                          [ngClass]="order.status === 'CANCELADO' ? 'bg-red-500' : (order.status === 'PAGO' ? 'bg-green-500' : 'bg-yellow-500')">
                                     </span>
-                                    <span [class]="getFulfillmentBadgeClass(order.status) + ' text-[10px] font-bold uppercase hidden sm:inline'">
-                                        @switch (order.status) {
-                                            @case ('ENTREGUE') { Entregue }
-                                            @case ('ENVIADO') { Enviado }
-                                            @default { — }
-                                        }
-                                    </span>
-                                </div>
+                                    {{ order.status === 'PAGO' ? 'Pago' : order.status.replace('_', ' ') }}
+                                </span>
+                            </td>
+
+                            <td class="px-6 py-5 text-center">
+                                <span [class]="getFulfillmentBadgeClass(order.status) + ' text-[10px] font-bold uppercase'">
+                                    @switch (order.status) {
+                                        @case ('ENTREGUE') { Entregue }
+                                        @case ('ENVIADO') { Enviado }
+                                        @case ('EM_PREPARACAO') { Em Separação }
+                                        @default { — }
+                                    }
+                                </span>
                             </td>
 
                             <td class="px-6 py-5 text-right">
@@ -114,49 +103,75 @@
 
                             <td class="px-6 py-5">
                                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button [routerLink]="['/pedido', order.id]" class="p-1.5 text-gray-400 hover:text-brand-600 transition-colors cursor-pointer">
-                                        <i class="ph-bold ph-eye"></i>
+                                    <button (click)="openStatusModal(order)" class="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" title="Alterar Status">
+                                        <i class="ph-bold ph-arrows-left-right"></i>
                                     </button>
-                                    <button class="p-1.5 text-gray-400 hover:text-gray-900 transition-colors cursor-pointer">
-                                        <i class="ph-bold ph-dots-three-vertical"></i>
+                                    <button [routerLink]="['/pedido', order.id]" class="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors cursor-pointer" title="Ver Detalhes">
+                                        <i class="ph-bold ph-eye"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
                     } @empty {
                         @if (!isLoading()) {
-                            <tr>
-                                <td colspan="6" class="px-6 py-24 text-center">
-                                    <p class="text-gray-400 text-sm italic">Nenhum pedido encontrado.</p>
-                                </td>
-                            </tr>
+                            <tr><td colspan="7" class="px-6 py-24 text-center text-gray-400 italic text-sm">Nenhum pedido encontrado.</td></tr>
                         }
                     }
                 </tbody>
             </table>
         </div>
         
-        <!-- Paginação Discreta -->
-        <footer class="px-6 py-4 border-t border-gray-50 flex items-center justify-between bg-white gap-4">
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                {{ filteredOrders().length }} de {{ totalElements() }} resultados
-            </span>
-            
+        <footer class="px-6 py-4 border-t border-gray-50 flex items-center justify-between bg-white">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ filteredOrders().length }} de {{ totalElements() }} itens</span>
             <div class="flex items-center gap-2">
-                <button (click)="changePage(-1)" 
-                        [disabled]="currentPage() === 0 || isLoading()"
-                        class="p-2 text-gray-400 hover:text-gray-900 disabled:opacity-20 transition-all cursor-pointer">
-                    <i class="ph-bold ph-arrow-left"></i>
-                </button>
-                
+                <button (click)="changePage(-1)" [disabled]="currentPage() === 0 || isLoading()" class="p-2 text-gray-400 hover:text-gray-900 disabled:opacity-20 cursor-pointer transition-all"><i class="ph-bold ph-arrow-left"></i></button>
                 <span class="text-xs font-bold text-gray-900 px-2">{{ currentPage() + 1 }}</span>
-
-                <button (click)="changePage(1)" 
-                        [disabled]="((currentPage() + 1) * pageSize()) >= totalElements() || isLoading()"
-                        class="p-2 text-gray-400 hover:text-gray-900 disabled:opacity-20 transition-all cursor-pointer">
-                    <i class="ph-bold ph-arrow-right"></i>
-                </button>
+                <button (click)="changePage(1)" [disabled]="((currentPage() + 1) * pageSize()) >= totalElements() || isLoading()" class="p-2 text-gray-400 hover:text-gray-900 disabled:opacity-20 cursor-pointer transition-all"><i class="ph-bold ph-arrow-right"></i></button>
             </div>
         </footer>
     </div>
+
+    <!-- Modal de Gerenciamento de Status -->
+    @if (showStatusModal()) {
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <!-- Overlay -->
+            <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-200 animate-fade-in" 
+                 (click)="showStatusModal.set(false)"></div>
+            
+            <!-- Card -->
+            <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-200 animate-scale-up-fast">
+                <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="font-bold text-gray-900 leading-none">Atualizar Pedido</h3>
+                        <p class="text-[10px] text-gray-400 font-mono mt-1.5">#{{ selectedOrder()?.id?.substring(0,8) | uppercase }}</p>
+                    </div>
+                    <button (click)="showStatusModal.set(false)" class="text-gray-400 hover:text-gray-600 p-2 cursor-pointer transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                </div>
+                
+                <form [formGroup]="statusForm" (ngSubmit)="confirmStatusUpdate()" class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Novo Status</label>
+                        <select formControlName="status" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-bold cursor-pointer focus:ring-2 focus:ring-brand-500 outline-none">
+                            @for (status of availableStatuses; track status.value) {
+                                <option [value]="status.value">{{ status.label }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <input type="checkbox" formControlName="notifyClient" id="notify" class="w-4 h-4 text-blue-600 rounded border-blue-300 focus:ring-blue-500">
+                        <label for="notify" class="text-xs font-bold text-blue-700 cursor-pointer select-none">Notificar cliente por e-mail</label>
+                    </div>
+
+                    <div class="pt-2 flex gap-3">
+                        <button type="button" (click)="showStatusModal.set(false)" class="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">Cancelar</button>
+                        <button type="submit" [disabled]="isUpdating()" class="flex-[2] bg-gray-900 text-white py-3 rounded-xl text-sm font-bold hover:bg-brand-600 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                            @if (isUpdating()) { <i class="ph-bold ph-spinner animate-spin"></i> }
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
 </div>
