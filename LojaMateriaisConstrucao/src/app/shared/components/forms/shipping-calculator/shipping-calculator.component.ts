@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgxMaskDirective } from 'ngx-mask';
-import { ShippingOption } from '../../../models/pedido.models';
+import { ShippingOption } from '../../../../models/pedido.models';
 
 @Component({
     selector: 'app-shipping-calculator',

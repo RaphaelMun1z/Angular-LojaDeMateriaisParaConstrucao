@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { BRAND_CONFIG } from '../../mocks/BRAND_CONFIG';
+import { BRAND_CONFIG } from '../../../mocks/BRAND_CONFIG';
 import { CommonModule } from '@angular/common';
 
 @Component({

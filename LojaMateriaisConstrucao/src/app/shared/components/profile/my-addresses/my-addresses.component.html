@@ -6,140 +6,121 @@
             <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <i class="ph-duotone ph-map-pin text-orange-500 text-2xl"></i> Meus Endereços
             </h2>
-            @if (!showAddressForm()) {
-                <button (click)="toggleAddressForm()" class="text-sm font-bold text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
+            
+            @if (!showForm() && !isLoading() && !hasError()) {
+                <button (click)="toggleForm()" class="text-sm font-bold text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
                     <i class="ph-bold ph-plus"></i> Novo Endereço
                 </button>
             }
         </div>
-        
-        <!-- Formulário de Cadastro -->
-        @if (showAddressForm()) {
-            <form [formGroup]="addressForm" (ngSubmit)="saveAddress()" class="mb-8 p-4 border border-gray-200 rounded-xl bg-gray-50 animate-fade-in">
-                <h4 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wide">Cadastrar Novo Endereço</h4>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <!-- Apelido -->
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="text-xs font-bold text-gray-500 uppercase">Apelido (Ex: Casa)</label>
-                        <input type="text" formControlName="apelido" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Minha Casa">
-                    </div>
-                    
-                    <!-- CEP com Busca -->
-                    <div class="col-span-2 md:col-span-1 relative">
-                        <label class="text-xs font-bold text-gray-500 uppercase flex justify-between">
-                            CEP 
-                            @if (isLoadingCep()) {
-                                <span class="text-brand-600 text-[10px] animate-pulse">Buscando...</span>
-                            }
-                        </label>
-                        <div class="relative">
-                            <input 
-                            type="text" 
-                            formControlName="cep" 
-                            mask="00000-000" 
-                            (blur)="buscarCep()" 
-                            class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none pr-10" 
-                            placeholder="00000-000">
-                            
-                            @if (isLoadingCep()) {
-                                <div class="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2">
-                                    <i class="ph-bold ph-spinner animate-spin text-brand-600"></i>
-                                </div>
-                            } @else {
-                                <button type="button" (click)="buscarCep()" class="absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-gray-400 hover:text-brand-600 cursor-pointer" title="Buscar CEP">
-                                    <i class="ph-bold ph-magnifying-glass"></i>
-                                </button>
-                            }
+
+        <!-- Formulário Reutilizável -->
+        @if (showForm()) {
+            <div class="mb-8 space-y-4">
+                <!-- Mensagem de Erro ao Salvar -->
+                @if (saveError()) {
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
+                        <i class="ph-fill ph-warning-circle text-red-500 text-xl mt-0.5"></i>
+                        <div>
+                            <h4 class="text-sm font-bold text-red-900">Não foi possível salvar o endereço</h4>
+                            <p class="text-xs text-red-700 mt-1">Ocorreu um erro de comunicação com o servidor. Verifique sua conexão e tente novamente.</p>
                         </div>
                     </div>
-                    
-                    <!-- Logradouro -->
-                    <div class="col-span-2">
-                        <label class="text-xs font-bold text-gray-500 uppercase">Endereço</label>
-                        <input type="text" formControlName="logradouro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Rua, Avenida...">
-                    </div>
-                    
-                    <!-- Número -->
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Número</label>
-                        <input type="text" formControlName="numero" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-                    </div>
-                    
-                    <!-- Complemento -->
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Complemento</label>
-                        <input type="text" formControlName="complemento" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" placeholder="Apto, Bloco...">
-                    </div>
-                    
-                    <!-- Bairro -->
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Bairro</label>
-                        <input type="text" formControlName="bairro" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-                    </div>
-                    
-                    <!-- Cidade -->
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Cidade</label>
-                        <input type="text" formControlName="cidade" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-                    </div>
-                    
-                    <!-- UF -->
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Estado (UF)</label>
-                        <input type="text" formControlName="uf" maxlength="2" class="w-full mt-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none uppercase" placeholder="SP">
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 mt-4 justify-end">
-                    <button type="button" (click)="toggleAddressForm()" class="px-4 py-2 text-gray-600 font-bold text-xs hover:bg-gray-200 rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" [disabled]="addressForm.invalid || isLoading()" class="px-4 py-2 bg-orange-600 text-white font-bold text-xs rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors flex items-center gap-2">
-                        @if(isLoading()) { <i class="ph-bold ph-spinner animate-spin"></i> }
-                        Salvar
-                    </button>
-                </div>
-            </form>
-        }
-        
-        <!-- Lista de Endereços -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @for (addr of addresses(); track addr.id) {
-                <div class="bg-white rounded-2xl p-6 border shadow-sm relative group hover:shadow-md transition-all" 
-                [class.border-orange-500]="addr.principal" 
-                [class.border-gray-200]="!addr.principal">
-                
-                @if (addr.principal) {
-                    <div class="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">PRINCIPAL</div>
-                } @else {
-                    <button (click)="setAsPrimary(addr.id)" class="absolute top-4 right-4 text-gray-300 hover:text-yellow-500 transition-colors" title="Definir como principal">
-                        <i class="ph-bold ph-star text-lg"></i>
-                    </button>
                 }
-                
-                <div class="flex items-start gap-4 mb-4">
-                    <div class="bg-orange-50 text-orange-600 p-2 rounded-lg shrink-0">
-                        <i class="ph-fill ph-house text-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-900">{{ addr.apelido }}</h4>
-                        <p class="text-sm text-gray-500 leading-snug mt-1">
-                            {{ addr.logradouro }}, {{ addr.numero }}<br>
-                            {{ addr.bairro }}, {{ addr.cidade }} - {{ addr.uf }}<br>
-                            CEP: {{ addr.cep | mask: '00000-000' }}
-                        </p>
-                    </div>
-                </div>
-                <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-                    <button (click)="deleteAddress(addr.id)" class="text-xs font-bold text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors"><i class="ph-bold ph-trash"></i> Excluir</button>
-                </div>
+
+                <app-address-form
+                    [initialData]="editingAddress()"
+                    (save)="handleSave($event)"
+                    (cancel)="toggleForm()">
+                </app-address-form>
             </div>
         }
-        @empty {
-            <div class="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                <p>Nenhum endereço cadastrado.</p>
+
+        <!-- 1. LOADING STATE (Skeleton) -->
+        @if (isLoading()) {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+                @for (i of [1,2]; track i) {
+                    <div class="rounded-2xl p-6 border border-gray-100 h-48 flex flex-col justify-between">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 bg-gray-100 rounded-lg"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-4 bg-gray-100 rounded w-1/3"></div>
+                                <div class="h-3 bg-gray-100 rounded w-3/4"></div>
+                                <div class="h-3 bg-gray-100 rounded w-1/2"></div>
+                            </div>
+                        </div>
+                        <div class="h-8 bg-gray-50 rounded mt-4 w-full"></div>
+                    </div>
+                }
+            </div>
+        }
+        <!-- 2. ERROR STATE (Servidor Indisponível) -->
+        @else if (hasError()) {
+            <div class="py-12 flex flex-col items-center justify-center text-center animate-fade-in bg-red-50/50 rounded-2xl border border-red-100 border-dashed">
+                <div class="bg-white p-4 rounded-full mb-4 shadow-sm">
+                    <i class="ph-duotone ph-cloud-slash text-4xl text-red-500"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">Serviço Indisponível</h3>
+                <p class="text-sm text-gray-500 max-w-xs mx-auto mb-6">Não foi possível carregar seus endereços. Verifique sua conexão.</p>
+                <button (click)="retryLoad()" class="bg-gray-900 hover:bg-brand-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-gray-200 hover:shadow-brand-500/20 transform hover:-translate-y-1 cursor-pointer flex items-center gap-2 text-sm">
+                    <i class="ph-bold ph-arrow-clockwise"></i> Tentar Novamente
+                </button>
+            </div>
+        }
+        <!-- 3. SUCCESS STATE -->
+        @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @for (addr of addresses(); track addr.id) {
+                    <div class="bg-white rounded-2xl p-6 border shadow-sm relative group hover:shadow-md transition-all" 
+                         [ngClass]="addr.principal ? 'border-orange-500 bg-orange-50/10' : 'border-gray-200'">
+                        
+                        <!-- Badge Principal -->
+                        @if (addr.principal) {
+                            <div class="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm cursor-default">PRINCIPAL</div>
+                        } @else {
+                            <button (click)="setAsPrimary(addr.id)" class="absolute top-4 right-4 text-gray-300 hover:text-yellow-500 transition-colors cursor-pointer" title="Definir como principal">
+                                <i class="ph-bold ph-star text-lg"></i>
+                            </button>
+                        }
+    
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="bg-orange-50 text-orange-600 p-2 rounded-lg shrink-0">
+                                <i class="ph-fill ph-house text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">{{ addr.apelido }}</h4>
+                                <p class="text-sm text-gray-500 leading-snug mt-1">
+                                    {{ addr.logradouro }}, {{ addr.numero }}
+                                    @if(addr.complemento) { - {{ addr.complemento }} }
+                                    <br>
+                                    {{ addr.bairro }}, {{ addr.cidade }} - {{ addr.uf }}<br>
+                                    <span class="font-mono text-xs text-gray-400 mt-1 block">CEP: {{ addr.cep | mask: '00000-000' }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                            <button (click)="startEdit(addr)" class="text-xs font-bold text-gray-500 hover:text-brand-600 flex items-center gap-1 transition-colors cursor-pointer">
+                                <i class="ph-bold ph-pencil-simple"></i> Editar
+                            </button>
+                            
+                            <div class="w-px h-3 bg-gray-200 self-center"></div>
+                            
+                            <button (click)="deleteAddress(addr.id)" class="text-xs font-bold text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors cursor-pointer">
+                                <i class="ph-bold ph-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                }
+                @empty {
+                    <div class="col-span-full py-12 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
+                        <i class="ph-duotone ph-map-pin text-5xl text-gray-300 mb-3"></i>
+                        <h3 class="text-gray-900 font-bold mb-1">Nenhum endereço cadastrado</h3>
+                        <p class="text-gray-500 text-sm mb-4">Adicione um endereço para agilizar suas compras.</p>
+                        <button (click)="toggleForm()" class="text-brand-600 font-bold text-sm hover:underline cursor-pointer">Cadastrar agora</button>
+                    </div>
+                }
             </div>
         }
     </div>
-</div>
 </div>

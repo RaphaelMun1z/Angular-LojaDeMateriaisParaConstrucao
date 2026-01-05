@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
-import { Stat, Value } from '../../shared/interfaces/AboutUs';
+import { Stat, Value } from '../../../shared/interfaces/AboutUs';
 
 @Component({
     selector: 'app-about-us-page',

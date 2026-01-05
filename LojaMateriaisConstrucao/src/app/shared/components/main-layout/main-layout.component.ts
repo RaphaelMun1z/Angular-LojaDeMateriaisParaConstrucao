@@ -20,50 +20,35 @@ export class MainLayoutComponent implements OnInit {
     private catalogoService = inject(CatalogoService);
     private route = inject(ActivatedRoute);
     
-    // Dados
     produtos = signal<Produto[]>([]);
     totalItems = signal(0);
     loading = signal(true);
+    hasError = signal(false); // Novo estado de erro
     
-    // Estado Visual
     isMobileFilterOpen = signal(false);
     viewMode = signal<'grid' | 'list'>('grid');
     
-    // Estado da Busca
     currentSort = signal(''); 
     currentFilter = signal<ProdutoFiltro | null>(null);
     
     ngOnInit() {
-        // Escuta mudanças na URL de forma reativa
         this.route.queryParams.subscribe(params => {
             const termo = params['termo'];
             const filtroLocal = this.currentFilter();
             
             if (termo) {
-                // 1. Caso haja termo na URL: Atualiza ou cria o filtro mantendo o termo
                 this.currentFilter.set({
-                    ...(filtroLocal || {
-                        apenasAtivos: true
-                    }),
-                    termo: termo,
-                    precoMin: 0,
-                    precoMax: 10000
+                    ...(filtroLocal || { precoMin: 0, precoMax: 10000, apenasAtivos: true }),
+                    termo: termo
                 });
                 this.carregarDados();
             } else {
-                // 2. Caso NÃO haja termo na URL:
-                // Se existia um termo no filtro local, precisamos removê-lo para resetar a busca
                 if (filtroLocal?.termo) {
                     const novoFiltro = { ...filtroLocal };
                     delete novoFiltro.termo;
-                    
-                    // Se após remover o termo, o filtro for o padrão (preços originais), podemos deixar null
-                    // ou manter apenas os filtros de preço da sidebar.
                     this.currentFilter.set(novoFiltro);
                     this.carregarDados();
-                } 
-                // Se é o carregamento inicial da página (sem termo e sem produtos carregados)
-                else if (this.produtos().length === 0) {
+                } else if (this.produtos().length === 0) {
                     this.carregarDados();
                 }
             }
@@ -72,6 +57,7 @@ export class MainLayoutComponent implements OnInit {
     
     carregarDados() {
         this.loading.set(true);
+        this.hasError.set(false); // Reseta erro ao tentar carregar
         
         const pageParams: PageableParams = { 
             page: 0, 
@@ -79,7 +65,6 @@ export class MainLayoutComponent implements OnInit {
             sort: this.currentSort() 
         };
         
-        // Decide qual endpoint chamar
         const requisicao$ = this.currentFilter() 
         ? this.catalogoService.buscarProdutosComFiltro(this.currentFilter()!, pageParams)
         : this.catalogoService.listarProdutosVitrine(pageParams);
@@ -94,18 +79,18 @@ export class MainLayoutComponent implements OnInit {
                 console.error('Erro ao carregar produtos', err);
                 this.produtos.set([]);
                 this.totalItems.set(0);
+                this.hasError.set(true); // Ativa estado de erro
                 this.loading.set(false);
             }
         });
     }
     
+    // ... (restante dos métodos iguais: aplicarFiltros, aplicarOrdenacao, alterarVisualizacao)
     aplicarFiltros(filtro: ProdutoFiltro) {
-        // Ao aplicar filtros da sidebar, preservamos o termo de busca que está na URL se ele existir
         const termoUrl = this.route.snapshot.queryParams['termo'];
         if (termoUrl) {
             filtro.termo = termoUrl;
         }
-        
         this.currentFilter.set(filtro);
         this.isMobileFilterOpen.set(false);
         this.carregarDados();

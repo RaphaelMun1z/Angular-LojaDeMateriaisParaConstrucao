@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Input, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ReactiveFormsModule } from '@angular/forms';
-import { BRAND_CONFIG } from '../../shared/mocks/BRAND_CONFIG';
+import { BRAND_CONFIG } from '../../../shared/mocks/BRAND_CONFIG';
 
 @Component({
     selector: 'app-register-page',

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
-import { ProductCardComponent } from "../../product-card/product-card.component";
+import { ProductCardComponent } from '../../product/product-card/product-card.component';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { CarrinhoService } from '../../../../services/carrinho.service';
 import { Produto } from '../../../../models/catalogo.models';

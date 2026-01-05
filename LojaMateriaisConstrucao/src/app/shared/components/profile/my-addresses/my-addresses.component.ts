@@ -1,114 +1,121 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, effect, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { UsuarioService } from '../../../../services/usuario.service';
 import { CommonModule } from '@angular/common';
-import { NgxMaskDirective, NgxMaskPipe } from 'ngx-mask';
+import { NgxMaskPipe } from 'ngx-mask';
+import { Endereco } from '../../../../models/usuario.models';
+import { AddressFormComponent } from "../../forms/address-form/address-form.component";
 
 @Component({
     selector: 'app-my-addresses',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxMaskDirective, NgxMaskPipe],
+    imports: [CommonModule, NgxMaskPipe, AddressFormComponent],
     templateUrl: './my-addresses.component.html',
     styleUrl: './my-addresses.component.css'
 })
 export class MyAddressesComponent {
     private authService = inject(AuthService);
-    public usuarioService = inject(UsuarioService);
+    private usuarioService = inject(UsuarioService);
     private toastr = inject(ToastrService);
-    private fb = inject(FormBuilder);
-    private http = inject(HttpClient);
     
     // Estado da UI
-    showAddressForm = signal(false);
-    isLoading = signal(false);
-    isLoadingCep = signal(false);
+    showForm = signal(false);
+    editingAddress = signal<any>(null);
     
-    // Acessa endereços via Signal do serviço
-    addresses = this.usuarioService.enderecos;
+    // Estados de Carregamento e Erro
+    isLoading = signal(true);
+    hasError = signal(false);
+    saveError = signal(false);
     
-    // Formulário
-    addressForm: FormGroup = this.fb.group({
-        apelido: ['', Validators.required],
-        cep: ['', [Validators.required, Validators.minLength(8)]],
-        logradouro: ['', Validators.required],
-        numero: ['', Validators.required],
-        complemento: [''],
-        bairro: ['', Validators.required],
-        cidade: ['', Validators.required],
-        uf: ['', [Validators.required, Validators.maxLength(2)]],
-        principal: [false]
-    });
+    // Dados Locais
+    addresses = signal<Endereco[]>([]);
     
     constructor() {
-        // Garante que os endereços sejam carregados ao iniciar este componente
         effect(() => {
             const currentUser = this.authService.currentUser();
             if (currentUser?.id) {
-                this.usuarioService.carregarEnderecos(currentUser.id);
+                this.carregarEnderecos(currentUser.id);
             }
         });
     }
     
-    // --- Lógica de CEP (ViaCEP) ---
-    buscarCep() {
-        const cep = this.addressForm.get('cep')?.value?.replace(/\D/g, '');
-        if (!cep || cep.length !== 8) return;
+    carregarEnderecos(userId: string) {
+        this.isLoading.set(true);
+        this.hasError.set(false);
         
-        this.isLoadingCep.set(true);
-        
-        this.http.get<any>(`https://viacep.com.br/ws/${cep}/json/`).subscribe({
-            next: (dados) => {
-                if (dados.erro) {
-                    this.toastr.warning('CEP não encontrado.', 'Atenção');
-                    this.addressForm.get('cep')?.setErrors({ invalid: true });
-                } else {
-                    this.addressForm.patchValue({
-                        logradouro: dados.logradouro,
-                        bairro: dados.bairro,
-                        cidade: dados.localidade,
-                        uf: dados.uf,
-                        complemento: dados.complemento
-                    });
-                    this.toastr.success('Endereço encontrado!', 'Sucesso');
-                }
+        // CORREÇÃO: Usando o método do serviço em vez de chamar HTTP direto
+        this.usuarioService.listarEnderecos(userId).subscribe({
+            next: (lista) => {
+                this.addresses.set(lista);
+                this.isLoading.set(false);
             },
-            error: () => this.toastr.error('Erro ao buscar o CEP.', 'Erro'),
-            complete: () => this.isLoadingCep.set(false)
+            error: (err) => {
+                console.error('Erro ao carregar endereços', err);
+                this.hasError.set(true);
+                this.isLoading.set(false);
+            }
         });
     }
     
-    // --- Lógica de CRUD ---
+    retryLoad() {
+        const userId = this.authService.currentUser()?.id;
+        if (userId) this.carregarEnderecos(userId);
+    }
     
-    toggleAddressForm() {
-        this.showAddressForm.update(v => !v);
-        if (!this.showAddressForm()) {
-            this.addressForm.reset();
+    // --- Gestão do Formulário ---
+    
+    toggleForm() {
+        this.showForm.update(v => !v);
+        this.saveError.set(false);
+        if (!this.showForm()) {
+            this.editingAddress.set(null);
         }
     }
     
-    saveAddress() {
-        if (this.addressForm.invalid) {
-            this.addressForm.markAllAsTouched();
-            return;
-        }
+    startEdit(address: Endereco) {
+        this.editingAddress.set(address);
+        this.showForm.set(true);
+        this.saveError.set(false);
         
+        // Pequeno delay para garantir que o elemento existe no DOM antes do scroll
+        setTimeout(() => {
+            const formElement = document.querySelector('app-address-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
+    
+    handleSave(addressData: any) {
         const userId = this.authService.currentUser()?.id;
         if (!userId) return;
         
-        this.isLoading.set(true);
-        const newAddress = this.addressForm.value;
+        this.saveError.set(false);
         
-        this.usuarioService.adicionarEndereco(userId, newAddress).subscribe({
+        const operation$ = this.editingAddress()
+        ? this.usuarioService.atualizarEndereco(this.editingAddress().id, addressData, userId)
+        : this.createAddress(addressData, userId);
+        
+        operation$.subscribe({
             next: () => {
-                this.toastr.success('Endereço cadastrado com sucesso!');
-                this.toggleAddressForm();
+                this.toastr.success(this.editingAddress() ? 'Endereço atualizado!' : 'Novo endereço cadastrado!');
+                this.toggleForm();
+                this.carregarEnderecos(userId);
             },
-            error: () => this.toastr.error('Erro ao salvar endereço.'),
-            complete: () => this.isLoading.set(false)
+            error: (err) => {
+                console.error('Erro ao salvar', err);
+                this.saveError.set(true);
+            }
         });
     }
+    
+    private createAddress(addressData: any, userId: string) {
+        const isFirst = this.addresses().length === 0;
+        const newAddress = { ...addressData, principal: addressData.principal || isFirst };
+        return this.usuarioService.adicionarEndereco(userId, newAddress);
+    }
+    
+    // --- Ações da Lista ---
     
     deleteAddress(id: string) {
         const userId = this.authService.currentUser()?.id;
@@ -116,7 +123,10 @@ export class MyAddressesComponent {
         
         if (confirm('Tem certeza que deseja excluir este endereço?')) {
             this.usuarioService.removerEndereco(id, userId).subscribe({
-                next: () => this.toastr.info('Endereço removido.'),
+                next: () => {
+                    this.toastr.info('Endereço removido.');
+                    this.carregarEnderecos(userId);
+                },
                 error: () => this.toastr.error('Erro ao remover endereço.')
             });
         }
@@ -127,7 +137,10 @@ export class MyAddressesComponent {
         if (!userId) return;
         
         this.usuarioService.definirComoPrincipal(id, userId).subscribe({
-            next: () => this.toastr.success('Endereço principal atualizado.'),
+            next: () => {
+                this.toastr.success('Endereço principal atualizado.');
+                this.carregarEnderecos(userId);
+            },
             error: () => this.toastr.error('Erro ao atualizar.')
         });
     }

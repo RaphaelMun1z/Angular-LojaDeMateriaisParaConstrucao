@@ -2,14 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../../core/auth/auth.service';
-import { EntregaRequest, MetodoPagamento, PagamentoRequest } from '../../models/pedido.models';
-import { CarrinhoService } from '../../services/carrinho.service';
-import { PedidoService } from '../../services/pedido.service';
-import { UsuarioService } from '../../services/usuario.service';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxMaskDirective, NgxMaskPipe, provideNgxMask } from 'ngx-mask';
-import { AddressFormComponent } from "../../shared/components/address-form/address-form.component";
+import { AuthService } from '../../../core/auth/auth.service';
+import { EntregaRequest, MetodoPagamento, PagamentoRequest } from '../../../models/pedido.models';
+import { CarrinhoService } from '../../../services/carrinho.service';
+import { PedidoService } from '../../../services/pedido.service';
+import { UsuarioService } from '../../../services/usuario.service';
+import { AddressFormComponent } from '../../../shared/components/forms/address-form/address-form.component';
 
 @Component({
     selector: 'app-finalize-purchase-page',

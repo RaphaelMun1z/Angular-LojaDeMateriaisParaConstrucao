@@ -32,6 +32,12 @@ export class UsuarioService {
     
     // --- GESTÃO DE ENDEREÇOS ---
     
+    listarEnderecos(clienteId: string): Observable<Endereco[]> {
+        return this.http.get<Endereco[]>(`${this.apiUrl}/cliente/${clienteId}`).pipe(
+            tap(lista => this._enderecos.set(lista))
+        );
+    }
+    
     carregarEnderecos(clienteId: string) {
         this.http.get<Endereco[]>(`${this.apiUrl}/enderecos/cliente/${clienteId}`)
         .subscribe({

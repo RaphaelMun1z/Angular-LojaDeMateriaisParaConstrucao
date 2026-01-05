@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Input, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BRAND_CONFIG } from '../../shared/mocks/BRAND_CONFIG';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { BRAND_CONFIG } from '../../../shared/mocks/BRAND_CONFIG';
 
 @Component({
     selector: 'app-login-page',

@@ -3,11 +3,11 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../../core/auth/auth.service';
-import { Produto } from '../../models/catalogo.models';
-import { CarrinhoService } from '../../services/carrinho.service';
-import { CatalogoService } from '../../services/catalogo.service';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+import { AuthService } from '../../../core/auth/auth.service';
+import { Produto } from '../../../models/catalogo.models';
+import { CarrinhoService } from '../../../services/carrinho.service';
+import { CatalogoService } from '../../../services/catalogo.service';
 
 @Component({
     selector: 'app-product-page',

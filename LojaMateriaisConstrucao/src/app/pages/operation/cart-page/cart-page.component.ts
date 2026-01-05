@@ -1,15 +1,15 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ItemCarrinho } from '../../models/carrinho.models';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../../core/auth/auth.service';
-import { Produto } from '../../models/catalogo.models';
-import { CarrinhoService } from '../../services/carrinho.service';
-import { CatalogoService } from '../../services/catalogo.service';
-import { PopupState } from '../../shared/interfaces/Cart';
-import { ShippingCalculatorComponent } from "../../shared/components/shipping-calculator/shipping-calculator.component";
+import { AuthService } from '../../../core/auth/auth.service';
+import { ItemCarrinho } from '../../../models/carrinho.models';
+import { Produto } from '../../../models/catalogo.models';
+import { CarrinhoService } from '../../../services/carrinho.service';
+import { CatalogoService } from '../../../services/catalogo.service';
+import { ShippingCalculatorComponent } from '../../../shared/components/forms/shipping-calculator/shipping-calculator.component';
+import { PopupState } from '../../../shared/interfaces/Cart';
 
 @Component({
     selector: 'app-cart-page',

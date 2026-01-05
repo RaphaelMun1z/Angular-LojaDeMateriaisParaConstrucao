@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Produto } from '../../../models/catalogo.models';
+import { Produto } from '../../../../models/catalogo.models';
 import { Router } from '@angular/router';
 
 @Component({

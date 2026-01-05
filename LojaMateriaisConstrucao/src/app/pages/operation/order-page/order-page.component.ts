@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { TimelineStep } from '../../shared/interfaces/Cart';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { Pedido, StatusPedido, ItemPedido } from '../../models/pedido.models';
-import { PedidoService } from '../../services/pedido.service';
+import { Pedido, StatusPedido, ItemPedido } from '../../../models/pedido.models';
+import { PedidoService } from '../../../services/pedido.service';
+import { TimelineStep } from '../../../shared/interfaces/Cart';
 
 @Component({
     selector: 'app-order-page',

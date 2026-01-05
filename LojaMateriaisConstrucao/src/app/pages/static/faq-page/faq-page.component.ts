@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FaqItem } from '../../shared/interfaces/FaqItem';
+import { FaqItem } from '../../../shared/interfaces/FaqItem';
 
 @Component({
     selector: 'app-faq-page',
