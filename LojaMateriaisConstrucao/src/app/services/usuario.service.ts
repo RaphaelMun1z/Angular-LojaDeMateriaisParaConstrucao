@@ -16,15 +16,30 @@ export class UsuarioService {
     private _enderecos = signal<Endereco[]>([]);
     public enderecos = this._enderecos.asReadonly();
     
-    atualizarFoto(userId: string, fileName: string): Observable<any> {
-        const url = `${this.apiUrl}/clientes/${userId}/avatar`;
-        
+    // --- NOVOS MÉTODOS: PERFIL DO PRÓPRIO UTILIZADOR (/me) ---
+    getMe(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/clientes/me`);
+    }
+    
+    atualizarMeuAvatar(fileName: string): Observable<any> {
+        const url = `${this.apiUrl}/clientes/me/avatar`;
         return this.http.patch(url, null, {
             params: { fileName }
         });
     }
     
-    // --- GESTÃO DE CLIENTES (ADMIN) ---
+    atualizarMeusDados(dados: { nome: string; telefone: string }): Observable<void> {
+        return this.http.patch<void>(`${this.apiUrl}/clientes/me`, dados);
+    }
+    
+    // --- MÉTODOS DE ADMINISTRAÇÃO (Por ID) ---
+    
+    // Usado por Admins para alterar fotos de outros utilizadores
+    atualizarFotoPorId(userId: string, fileName: string): Observable<any> {
+        const url = `${this.apiUrl}/clientes/${userId}/avatar`;
+        return this.http.patch(url, null, { params: { fileName } });
+    }
+    
     listarTodosClientes(pageable?: PageableParams): Observable<Page<Cliente>> {
         let params = new HttpParams();
         if (pageable?.page !== undefined) params = params.set('page', pageable.page);
@@ -37,7 +52,6 @@ export class UsuarioService {
     // --- GESTÃO DE ENDEREÇOS ---
     
     listarEnderecos(clienteId: string): Observable<Endereco[]> {
-        // CORREÇÃO: Ajustado para '/enderecos/cliente/' para seguir o padrão do Postman e do método abaixo
         return this.http.get<Endereco[]>(`${this.apiUrl}/enderecos/cliente/${clienteId}`).pipe(
             tap(lista => this._enderecos.set(lista))
         );

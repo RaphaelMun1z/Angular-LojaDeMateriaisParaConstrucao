@@ -35,11 +35,11 @@
                 (mousemove)="onMouseMove($event)"
                 (mouseleave)="onMouseLeave()">
                 
-                <!-- Imagem Real -->
+                <!-- Imagem Real: Usa currentImage() que já é a URL completa -->
                 <img 
                 [src]="currentImage()" 
                 [alt]="p.titulo"
-                class="w-full h-full object-cover transition-transform duration-200 ease-out"
+                class="w-full h-full object-contain bg-white transition-transform duration-200 ease-out"
                 [style.transform]="zoomTransform()"
                 [style.transform-origin]="zoomOrigin()">
                 
@@ -50,9 +50,11 @@
                             {{ discountPercentage() }}% OFF
                         </span>
                     }
-                    <span class="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                        FRETE GRÁTIS
-                    </span>
+                    @if (p.estoque > 0) {
+                        <span class="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                            PRONTA ENTREGA
+                        </span>
+                    }
                 </div>
                 
                 <button class="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-400 hover:text-red-500 p-2 rounded-full shadow-sm backdrop-blur-sm transition-all z-10">
@@ -60,12 +62,12 @@
                 </button>
             </div>
             
-            <!-- Thumbnails (Mockados) -->
+            <!-- Thumbnails: Usa productImages() que são URLs completas -->
             <div class="grid grid-cols-5 gap-3">
-                @for (img of mockImages; track $index) {
+                @for (img of productImages(); track $index) {
                     <div 
                     (click)="changeImage(img)"
-                    class="aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all"
+                    class="aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all bg-gray-50"
                     [ngClass]="currentImage() === img ? 'border-brand-500' : 'border-transparent hover:border-gray-300'">
                     <img [src]="img" class="w-full h-full object-cover">
                 </div>
@@ -96,7 +98,7 @@
                         <i class="ph-fill ph-star-half"></i>
                     </div>
                     <span class="font-bold text-gray-700 ml-1">{{ productExtras.rating }}</span>
-                    <span class="text-gray-400 text-xs">({{ productExtras.reviews.length }} avaliações)</span>
+                    <span class="text-gray-400 text-xs">({{ productExtras.reviewsCount }} avaliações)</span>
                 </div>
                 
                 @if (p.estoque > 0) {
@@ -209,7 +211,7 @@
                 <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transition-transform duration-300" [class.scale-x-100]="activeTab() === 'specs'" [class.scale-x-0]="activeTab() !== 'specs'"></span>
             </button>
             <button (click)="setActiveTab('reviews')" class="group relative min-w-[120px] py-4 px-6 text-sm font-bold text-center hover:bg-gray-50 transition-colors" [class.text-brand-600]="activeTab() === 'reviews'" [class.text-gray-500]="activeTab() !== 'reviews'">
-                Avaliações ({{ productExtras.reviews.length }})
+                Avaliações ({{ productExtras.reviewsCount }})
                 <span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-500 transition-transform duration-300" [class.scale-x-100]="activeTab() === 'reviews'" [class.scale-x-0]="activeTab() !== 'reviews'"></span>
             </button>
         </nav>
@@ -222,11 +224,12 @@
                 <div class="flex flex-col md:flex-row items-center gap-10">
                     <div class="md:w-1/2">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4">Detalhes do Produto</h2>
-                        <p class="text-gray-600 leading-relaxed">{{ p.descricao }}</p>
+                        <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ p.descricao }}</p>
                     </div>
                     <div class="md:w-1/2">
-                        <div class="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-300">
-                             <i class="ph-duotone ph-image text-8xl"></i>
+                        <div class="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-300 overflow-hidden">
+                             <!-- Exibe imagem principal no detalhe tbm -->
+                             <img [src]="currentImage()" class="w-full h-full object-cover opacity-80 mix-blend-multiply">
                         </div>
                     </div>
                 </div>
@@ -293,7 +296,7 @@
   </main>
   }
   @else {
-    <!-- 3. Caso Raro: Nem loading nem produto (ex: erro silencioso) -->
+    <!-- 3. Caso Raro: Nem loading nem produto -->
     <div class="h-screen flex flex-col items-center justify-center text-red-500 gap-4">
       <i class="ph-duotone ph-warning-circle text-4xl"></i>
       <p>Produto não encontrado.</p>

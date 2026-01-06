@@ -12,6 +12,7 @@ export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
     private apiUrl = `${environment.apiUrl}/auth`;
+    private clienteUrl = `${environment.apiUrl}/clientes`; // URL para buscar dados frescos
     
     private _accessToken = signal<string | null>(localStorage.getItem('access_token'));
     public accessToken = this._accessToken.asReadonly();
@@ -26,34 +27,56 @@ export class AuthService {
     constructor() {
         const token = this._accessToken();
         if (token) {
+            // 1. Restaura estado inicial pelo Token (Rápido)
             this.decodeAndSetUser(token);
+            
+            // 2. Busca dados frescos do banco (Seguro e Atualizado)
+            // Isso resolve o problema de dados antigos ou faltantes (como telefone) no F5
+            this.refreshUserData();
         }
     }
     
-    // --- NOVO MÉTODO: Atualiza o estado local do usuário sem relogar ---
+    /**
+    * Busca os dados mais recentes do servidor (/me) e atualiza o estado em memória.
+    * Não salva nada sensível no localStorage.
+    */
+    refreshUserData() {
+        this.http.get<User>(`${this.clienteUrl}/me`).subscribe({
+            next: (userFresquinho) => {
+                // Atualiza o sinal com os dados reais do banco
+                this.updateUserSignal(userFresquinho);
+            },
+            error: (err) => console.error('Erro ao sincronizar perfil em background', err)
+        });
+    }
+    
+    /**
+    * Atualiza apenas o estado local (Signal) em memória.
+    * Usado após upload de foto ou edição de perfil.
+    */
     updateUser(updates: Partial<User>) {
-        this.user.update(current => {
+        this._currentUser.update(current => {
             if (!current) return null;
             return { ...current, ...updates };
         });
     }
     
-    // Acesso direto ao signal (atalho)
-    private get user() { return this._currentUser; }
+    // Método privado para centralizar a atualização do signal
+    private updateUserSignal(user: User) {
+        this._currentUser.set(user);
+    }
     
-    // ... (restante dos métodos hasRole, hasAnyRole mantidos) ...
+    // ... (Métodos de Role mantidos iguais) ...
     hasRole(roleOrPermission: string): boolean {
         const user = this._currentUser();
-        return user?.roles?.includes(roleOrPermission) ?? false;
+        return Array.isArray(user?.roles) ? user.roles.includes(roleOrPermission) : false;
     }
     
     hasAnyRole(roles: string[]): boolean {
         const user = this._currentUser();
-        if (!user || !user.roles) return false;
+        if (!user || !Array.isArray(user.roles)) return false;
         return roles.some(role => user.roles!.includes(role));
     }
-    
-    // ... (Login, Register, Logout mantidos iguais) ...
     
     login(credentials: LoginRequest): Observable<boolean> {
         return this.http.post<TokenResponse>(`${this.apiUrl}/signin`, credentials).pipe(
@@ -97,22 +120,25 @@ export class AuthService {
         localStorage.setItem('username', response.username);
         
         this._accessToken.set(response.accessToken);
+        
+        // 1. Define estado inicial pelo Token
         this.decodeAndSetUser(response.accessToken);
+        
+        // 2. Busca dados completos imediatamente (para ter telefone/avatar atualizados)
+        this.refreshUserData();
     }
     
     private decodeAndSetUser(token: string) {
         try {
             const payload = this.parseJwt(token);
             
-            // Tenta recuperar avatar salvo localmente se o token não tiver (opcional)
-            // ou espera que o componente Profile faça um 'fetch' dos dados atualizados.
-            
+            // Estado inicial básico (apenas o que tem no token)
             const user: User = {
                 id: payload.id,
                 email: payload.sub,
                 roles: Array.isArray(payload.roles) ? payload.roles : [],
-                // Se o backend enviar 'avatar' no token futuramente, mapear aqui
-                avatar: payload.avatar 
+                name: payload.name || payload.sub.split('@')[0],
+                avatar: undefined
             };
             
             this._currentUser.set(user);

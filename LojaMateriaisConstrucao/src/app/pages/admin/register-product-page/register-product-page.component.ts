@@ -8,6 +8,7 @@ import { CatalogoService } from '../../../services/catalogo.service';
 import { TipoMovimentacao, MovimentacaoEstoqueRequest } from '../../../models/estoque.models';
 import { EstoqueService } from '../../../services/estoque.service';
 import { FileUploadService } from '../../../services/fileUpload.service';
+import { HttpResponse } from '@angular/common/http';
 
 @Component({
     selector: 'app-register-product-page',
@@ -28,7 +29,7 @@ export class RegisterProductPageComponent implements OnInit {
     // Estados reativos
     isLoading = signal(false);
     isAdjustingStock = signal(false);
-    isUploading = signal(false); // Estado de upload
+    isUploading = signal(false);
     isEditing = signal(false);
     showStockModal = signal(false);
     productId = signal<string | null>(null);
@@ -94,9 +95,15 @@ export class RegisterProductPageComponent implements OnInit {
                     dimensoes: produto.dimensoes
                 });
                 
-                // Carrega as imagens existentes
+                // Tratamento das imagens vindas do banco
                 if (produto.imagens && produto.imagens.length > 0) {
-                    this.images.set(produto.imagens);
+                    const imagensProcessadas = produto.imagens.map(img => {
+                        // Se não começar com http, assumimos que é um nome de arquivo e geramos a URL
+                        return img.startsWith('http') 
+                        ? img 
+                        : this.fileUploadService.getPreviewUrl(img);
+                    });
+                    this.images.set(imagensProcessadas);
                 }
                 
                 this.isLoading.set(false);
@@ -114,29 +121,48 @@ export class RegisterProductPageComponent implements OnInit {
         if (files && files.length > 0) {
             this.isUploading.set(true);
             let uploadCount = 0;
+            let successCount = 0;
+            const totalFiles = files.length;
             
-            for (let i = 0; i < files.length; i++) {
+            for (let i = 0; i < totalFiles; i++) {
                 const file = files[i];
                 
+                // Validação simples de tipo
+                if (!file.type.startsWith('image/')) {
+                    this.toastr.warning(`O arquivo ${file.name} não é uma imagem válida.`);
+                    uploadCount++;
+                    this.checkUploadComplete(uploadCount, totalFiles);
+                    continue;
+                }
+                
                 this.fileUploadService.upload(file).subscribe({
-                    next: (response) => {
-                        // Adiciona a URL retornada ao signal de imagens
-                        //this.images.update(imgs => [...imgs, response.url]);
-                        uploadCount++;
+                    next: (httpEvent: any) => {
+                        if (httpEvent instanceof HttpResponse) {
+                            // Sucesso: Backend retornou o nome do arquivo (ex: uuid.jpg)
+                            const fileName = httpEvent.body.fileName;
+                            const fullUrl = this.fileUploadService.getPreviewUrl(fileName);
+                            
+                            // Adiciona ao signal de imagens
+                            this.images.update(imgs => [...imgs, fullUrl]);
+                            successCount++;
+                            uploadCount++;
+                            this.checkUploadComplete(uploadCount, totalFiles);
+                        }
                     },
                     error: () => {
                         this.toastr.error(`Erro ao enviar a imagem ${file.name}`);
-                        uploadCount++; // Conta como processado mesmo com erro para liberar o loading
-                    },
-                    complete: () => {
-                        // Se todos os arquivos foram processados, encerra o loading
-                        if (uploadCount === files.length) {
-                            this.isUploading.set(false);
-                            this.toastr.success('Imagens enviadas com sucesso!');
-                        }
+                        uploadCount++;
+                        this.checkUploadComplete(uploadCount, totalFiles);
                     }
                 });
             }
+        }
+    }
+    
+    private checkUploadComplete(current: number, total: number) {
+        if (current === total) {
+            this.isUploading.set(false);
+            this.toastr.success('Processamento de imagens concluído!');
         }
     }
     
@@ -148,6 +174,7 @@ export class RegisterProductPageComponent implements OnInit {
     onSubmit() {
         if (this.productForm.invalid) {
             this.productForm.markAllAsTouched();
+            this.toastr.warning('Preencha todos os campos obrigatórios.');
             return;
         }
         
@@ -165,7 +192,9 @@ export class RegisterProductPageComponent implements OnInit {
             categoriaId: formValue.categoriaId,
             pesoKg: formValue.pesoKg,
             dimensoes: formValue.dimensoes,
-            imagens: this.images() // Envia as URLs das imagens
+            // Enviamos as URLs completas. 
+            // Nota: Se o seu backend preferir só o nome do arquivo, você pode fazer um .map() aqui para extrair.
+            imagens: this.images() 
         };
         
         const operation$ = this.isEditing() && this.productId()
@@ -184,10 +213,9 @@ export class RegisterProductPageComponent implements OnInit {
         });
     }
     
-    // --- Outros Métodos (Estoque, Getters) mantidos iguais ---
+    // --- Outros Métodos (Estoque, Getters) mantidos ---
     
     openStockModal(product: any) { 
-        // Lógica de modal (pode manter a implementação anterior ou adaptar se o produto vier do load)
         this.stockForm.reset({ quantidade: 1, tipo: TipoMovimentacao.ENTRADA, motivo: '' });
         this.showStockModal.set(true);
     }
@@ -212,6 +240,7 @@ export class RegisterProductPageComponent implements OnInit {
                 this.toastr.success('Estoque atualizado com sucesso!');
                 this.stockForm.reset({ quantidade: 1, tipo: TipoMovimentacao.ENTRADA, motivo: '' });
                 this.showStockModal.set(false);
+                // Recarrega para atualizar a quantidade na tela
                 this.carregarDadosProduto(this.productId()!);
             },
             error: (err) => this.toastr.error(err.error?.message || 'Erro ao ajustar estoque.'),

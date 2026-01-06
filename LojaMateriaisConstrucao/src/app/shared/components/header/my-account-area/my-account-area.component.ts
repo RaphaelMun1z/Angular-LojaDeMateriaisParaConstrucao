@@ -29,7 +29,34 @@ export class MyAccountAreaComponent {
         this.authService.logout();
     }
     
+    /**
+    * Retorna o nome do usuário (preferencialmente) ou o email formatado
+    */
     get userName(): string {
-        return this.authService.currentUser()?.email || 'Minha Conta';
+        const user = this.authService.currentUser();
+        if (user && user.name) {
+            // Pega apenas o primeiro nome se for muito longo
+            return user.name.split(' ')[0];
+        }
+        return user?.email?.split('@')[0] || 'Minha Conta';
+    }
+    
+    /**
+    * Retorna a URL do avatar (se existir) ou gera um padrão
+    */
+    get userAvatar(): string {
+        const user = this.authService.currentUser();
+        
+        // Se já tivermos a URL completa salva no estado global (feito no MyPersonalData)
+        if (user?.avatar) {
+            return user.avatar;
+        }
+        
+        // Fallback padrão
+        return `https://ui-avatars.com/api/?name=${this.userName}&background=0f172a&color=fff&size=128`;
+    }
+    
+    handleImageError(event: any) {
+        event.target.src = `https://ui-avatars.com/api/?name=${this.userName}&background=0f172a&color=fff&size=128`;
     }
 }

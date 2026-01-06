@@ -1,13 +1,13 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '../auth/auth.service';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    const authService = inject(AuthService);
-    const token = authService.accessToken();
+    const router = inject(Router);
     
-    // 1. Injeta o Token se existir
+    const token = localStorage.getItem('access_token');
+    
     let authReq = req;
     if (token) {
         authReq = req.clone({
@@ -17,12 +17,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         });
     }
     
-    // 2. Trata erros globais (ex: Token Expirado)
     return next(authReq).pipe(
         catchError((error: HttpErrorResponse) => {
             if (error.status === 401) {
-                // Se der 401, o token é inválido ou expirou -> Logout forçado
-                authService.cleanSession();
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('username');
+                
+                router.navigate(['/login']);
             }
             return throwError(() => error);
         })

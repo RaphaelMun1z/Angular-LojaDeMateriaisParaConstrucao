@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { Produto } from '../../../models/catalogo.models';
 import { CarrinhoService } from '../../../services/carrinho.service';
 import { CatalogoService } from '../../../services/catalogo.service';
+import { FileUploadService } from '../../../services/fileUpload.service';
 
 @Component({
     selector: 'app-product-page',
@@ -24,39 +25,35 @@ export class ProductPageComponent implements OnInit {
     private catalogoService = inject(CatalogoService);
     private carrinhoService = inject(CarrinhoService);
     private authService = inject(AuthService);
+    private fileUploadService = inject(FileUploadService); // Injetamos o serviço correto
     
     // Estado do Produto
     product = signal<Produto | null>(null);
     loading = signal(true);
     
     // Estado Visual
-    currentImage = signal<string>('');
+    productImages = signal<string[]>([]); 
+    currentImage = signal<string>('');    
     activeTab = signal<'overview' | 'specs' | 'reviews'>('overview');
     quantity = signal(1);
     
-    // Variáveis para Zoom
+    // Zoom
     zoomTransform = signal('scale(1)');
     zoomOrigin = signal('center center');
     
-    // Variáveis de Frete
+    // Frete
     zipCode = signal('');
     shippingResult = signal<null | { type: string, days: number, price: number }[]>(null);
     
-    // Mocks Visuais
-    mockImages = [
-        'https://placehold.co/600x600/f3f4f6/a1a1aa?text=Produto+Img+1',
-        'https://placehold.co/600x600/f3f4f6/a1a1aa?text=Detalhe+2',
-        'https://placehold.co/600x600/f3f4f6/a1a1aa?text=Uso+3'
-    ];
-    
+    // Dados Extras (Mock)
     productExtras = {
         rating: 4.8,
+        reviewsCount: 128,
         brand: 'NEXUS',
         specs: [
-            { label: "Material", value: "Premium" },
-            { label: "Garantia", value: "12 meses" },
-            { label: "Cor", value: "Padrão" },
-            { label: "Uso Indicado", value: "Profissional e Doméstico" }
+            { label: "Garantia", value: "12 meses do fabricante" },
+            { label: "Conteúdo", value: "1 Unidade" },
+            { label: "Material", value: "Alta Resistência" }
         ],
         reviews: [
             { user: "Carlos S.", date: "10/10/2023", rating: 5, text: "Produto excelente, superou minhas expectativas." },
@@ -64,8 +61,6 @@ export class ProductPageComponent implements OnInit {
             { user: "João P.", date: "20/08/2023", rating: 5, text: "Melhor custo benefício do mercado." }
         ]
     };
-    
-    // --- COMPUTEDS ---
     
     finalPrice = computed(() => {
         const p = this.product();
@@ -96,19 +91,31 @@ export class ProductPageComponent implements OnInit {
         this.catalogoService.obterProduto(id).subscribe({
             next: (data) => {
                 this.product.set(data);
-                this.currentImage.set(this.mockImages[0]);
+                
+                console.log(data)
+                if (data.imagens && data.imagens.length > 0) {
+                    const resolvedImages = data.imagens.map(img => {
+                        // Verifica se é URL externa ou se precisa ser resolvida pelo serviço
+                        return img.startsWith('http') ? img : this.fileUploadService.getPreviewUrl(img);
+                    });
+                    this.productImages.set(resolvedImages);
+                    this.currentImage.set(resolvedImages[0]);
+                } else {
+                    const placeholder = 'https://placehold.co/600x600/f3f4f6/a1a1aa?text=Sem+Imagem';
+                    this.productImages.set([placeholder]);
+                    this.currentImage.set(placeholder);
+                }
+                
                 this.quantity.set(1);
                 this.loading.set(false);
             },
             error: (err) => {
                 console.error(err);
-                this.toastr.error('Produto não encontrado ou indisponível.', 'Erro');
+                this.toastr.error('Produto não encontrado ou indisponível.');
                 this.router.navigate(['/']);
             }
         });
     }
-    
-    // --- Lógica Visual ---
     
     setActiveTab(tab: 'overview' | 'specs' | 'reviews') {
         this.activeTab.set(tab);
@@ -125,8 +132,7 @@ export class ProductPageComponent implements OnInit {
         }
     }
     
-    // --- Lógica de Zoom ---
-    
+    // Zoom Lógica
     onMouseMove(e: MouseEvent) {
         const element = e.currentTarget as HTMLElement;
         const { left, top, width, height } = element.getBoundingClientRect();
@@ -142,42 +148,35 @@ export class ProductPageComponent implements OnInit {
         this.zoomOrigin.set('center center');
     }
     
-    // --- Ações ---
-    
     addToCart() {
         const p = this.product();
         if (!p) return;
         
         if (p.estoque <= 0) {
-            this.toastr.warning('Produto fora de estoque.', 'Ops!');
+            this.toastr.warning('Produto fora de estoque.');
             return;
         }
         
         if (!this.authService.isAuthenticated()) {
-            this.toastr.info('Faça login para comprar.', 'Atenção');
-            this.router.navigate(['/login']);
+            this.toastr.info('Faça login para comprar.');
+            this.router.navigate(['/auth/login']);
             return;
         }
         
         const userId = this.authService.currentUser()?.id;
         if (userId) {
             this.carrinhoService.adicionarItem(userId, p.id, this.quantity()).subscribe({
-                next: () => {
-                    this.toastr.success(`Adicionado ${this.quantity()}x ${p.titulo}`, 'Sucesso!');
-                },
-                error: () => {
-                    this.toastr.error('Erro ao adicionar ao carrinho.', 'Erro');
-                }
+                next: () => this.toastr.success(`Adicionado ao carrinho!`),
+                error: () => this.toastr.error('Erro ao adicionar.')
             });
         }
     }
     
     calculateShipping() {
         if (this.zipCode().length < 8) {
-            this.toastr.warning('Digite um CEP válido', 'Atenção');
+            this.toastr.warning('Digite um CEP válido');
             return;
         }
-        
         this.shippingResult.set([
             { type: 'Expresso (Sedex)', days: 2, price: 32.50 },
             { type: 'Econômica (PAC)', days: 7, price: 15.90 }

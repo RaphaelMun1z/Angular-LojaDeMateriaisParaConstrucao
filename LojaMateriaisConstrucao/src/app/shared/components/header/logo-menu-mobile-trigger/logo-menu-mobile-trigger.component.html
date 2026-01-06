@@ -3,11 +3,13 @@
     @if (config.useImage) {
         <img [src]="config.logoUrl" [alt]="fullName" class="h-10 w-auto group-hover:scale-105 transition-transform object-contain">
     } @else {
+        <!-- Ícone com gradiente de fundo -->
         <div class="bg-linear-to-br from-brand-500 to-brand-600 text-white p-2 rounded-lg shadow-lg shadow-brand-500/20 group-hover:scale-105 transition-transform duration-300">
             <i [class]="config.iconClass + ' text-2xl'"></i>
         </div>
     }
     
+    <!-- Texto do Logo (oculto em mobile muito pequeno se necessário, mas aqui está sm:block) -->
     <span class="text-2xl font-extrabold tracking-tight hidden sm:block" 
     [ngClass]="color === 'dark' ? 'text-gray-900' : 'text-white'">
     {{ config.namePrefix }}<span class="text-brand-500">{{ config.nameSuffix }}</span></span>
