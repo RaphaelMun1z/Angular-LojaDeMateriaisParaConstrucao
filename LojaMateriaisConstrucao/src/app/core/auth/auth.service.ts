@@ -12,7 +12,9 @@ export class AuthService {
     private http = inject(HttpClient);
     private router = inject(Router);
     private apiUrl = `${environment.apiUrl}/auth`;
-    private clienteUrl = `${environment.apiUrl}/clientes`; // URL para buscar dados frescos
+    private clienteUrl = `${environment.apiUrl}/clientes`;
+    
+    // --- ESTADO (Signals) ---
     
     private _accessToken = signal<string | null>(localStorage.getItem('access_token'));
     public accessToken = this._accessToken.asReadonly();
@@ -22,37 +24,44 @@ export class AuthService {
     
     public isAuthenticated = computed(() => !!this._accessToken());
     
+    // Verifica se é Admin
     public isAdmin = computed(() => this.hasRole('ROLE_ADMIN'));
     
     constructor() {
         const token = this._accessToken();
         if (token) {
-            // 1. Restaura estado inicial pelo Token (Rápido)
+            // 1. Restaura estado inicial pelo Token (Instantâneo)
             this.decodeAndSetUser(token);
             
-            // 2. Busca dados frescos do banco (Seguro e Atualizado)
-            // Isso resolve o problema de dados antigos ou faltantes (como telefone) no F5
+            // 2. Busca dados frescos do banco (Para pegar foto/nome atualizados)
             this.refreshUserData();
         }
     }
     
     /**
-    * Busca os dados mais recentes do servidor (/me) e atualiza o estado em memória.
-    * Não salva nada sensível no localStorage.
+    * Busca os dados mais recentes do servidor usando o endpoint /me.
+    * Isso garante que os dados retornados pertencem ao token enviado no header.
     */
     refreshUserData() {
-        this.http.get<User>(`${this.clienteUrl}/me`).subscribe({
-            next: (userFresquinho) => {
-                // Atualiza o sinal com os dados reais do banco
-                this.updateUserSignal(userFresquinho);
+        // Não precisamos mais do ID do usuário aqui, pois o /me usa o token do interceptor
+        this.http.get<any>(`${this.clienteUrl}/me`).subscribe({
+            next: (dadosBanco) => {
+                // Atualiza o sinal com os dados reais vindos do UsuarioResponseDTO
+                // Mapeia os campos do Java (nome, fotoUrl) para o Frontend (name, avatar)
+                this.updateUser({
+                    name: dadosBanco.nome,      
+                    email: dadosBanco.email,
+                    avatar: dadosBanco.fotoUrl  
+                });
             },
-            error: (err) => console.error('Erro ao sincronizar perfil em background', err)
+            // Ignora erros silenciosamente (ex: token expirou durante o refresh)
+            error: (err) => console.warn('Sincronização de perfil em background falhou.', err.status)
         });
     }
     
     /**
-    * Atualiza apenas o estado local (Signal) em memória.
-    * Usado após upload de foto ou edição de perfil.
+    * Atualiza o estado local (Signal) em memória.
+    * Útil após upload de foto ou edição de perfil sem precisar relogar.
     */
     updateUser(updates: Partial<User>) {
         this._currentUser.update(current => {
@@ -61,14 +70,11 @@ export class AuthService {
         });
     }
     
-    // Método privado para centralizar a atualização do signal
-    private updateUserSignal(user: User) {
-        this._currentUser.set(user);
-    }
+    // --- MÉTODOS DE VERIFICAÇÃO ---
     
-    // ... (Métodos de Role mantidos iguais) ...
     hasRole(roleOrPermission: string): boolean {
         const user = this._currentUser();
+        // Garante que roles seja array
         return Array.isArray(user?.roles) ? user.roles.includes(roleOrPermission) : false;
     }
     
@@ -77,6 +83,8 @@ export class AuthService {
         if (!user || !Array.isArray(user.roles)) return false;
         return roles.some(role => user.roles!.includes(role));
     }
+    
+    // --- AÇÕES ---
     
     login(credentials: LoginRequest): Observable<boolean> {
         return this.http.post<TokenResponse>(`${this.apiUrl}/signin`, credentials).pipe(
@@ -114,6 +122,8 @@ export class AuthService {
         this.logout();
     }
     
+    // --- PRIVADOS ---
+    
     private handleAuthSuccess(response: TokenResponse) {
         localStorage.setItem('access_token', response.accessToken);
         localStorage.setItem('refresh_token', response.refreshToken);
@@ -124,7 +134,7 @@ export class AuthService {
         // 1. Define estado inicial pelo Token
         this.decodeAndSetUser(response.accessToken);
         
-        // 2. Busca dados completos imediatamente (para ter telefone/avatar atualizados)
+        // 2. Busca dados completos imediatamente para garantir consistência
         this.refreshUserData();
     }
     
@@ -132,13 +142,13 @@ export class AuthService {
         try {
             const payload = this.parseJwt(token);
             
-            // Estado inicial básico (apenas o que tem no token)
             const user: User = {
                 id: payload.id,
                 email: payload.sub,
                 roles: Array.isArray(payload.roles) ? payload.roles : [],
-                name: payload.name || payload.sub.split('@')[0],
-                avatar: undefined
+                // Nome provisório extraído do email ou token, será atualizado pelo refreshUserData
+                name: payload.name || payload.sub.split('@')[0], 
+                avatar: undefined 
             };
             
             this._currentUser.set(user);

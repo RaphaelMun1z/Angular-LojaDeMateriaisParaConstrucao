@@ -25,7 +25,7 @@ export class ProductPageComponent implements OnInit {
     private catalogoService = inject(CatalogoService);
     private carrinhoService = inject(CarrinhoService);
     private authService = inject(AuthService);
-    private fileUploadService = inject(FileUploadService); // Injetamos o serviço correto
+    private fileUploadService = inject(FileUploadService);
     
     // Estado do Produto
     product = signal<Produto | null>(null);
@@ -56,9 +56,9 @@ export class ProductPageComponent implements OnInit {
             { label: "Material", value: "Alta Resistência" }
         ],
         reviews: [
-            { user: "Carlos S.", date: "10/10/2023", rating: 5, text: "Produto excelente, superou minhas expectativas." },
-            { user: "Fernanda M.", date: "05/09/2023", rating: 4, text: "Muito bom, funciona perfeitamente." },
-            { user: "João P.", date: "20/08/2023", rating: 5, text: "Melhor custo benefício do mercado." }
+            { user: "Carlos S.", date: "10/10/2023", rating: 5, text: "Produto excelente." },
+            { user: "Fernanda M.", date: "05/09/2023", rating: 4, text: "Muito bom." },
+            { user: "João P.", date: "20/08/2023", rating: 5, text: "Melhor custo benefício." }
         ]
     };
     
@@ -92,12 +92,19 @@ export class ProductPageComponent implements OnInit {
             next: (data) => {
                 this.product.set(data);
                 
-                console.log(data)
+                // --- CORREÇÃO DO ERRO ---
                 if (data.imagens && data.imagens.length > 0) {
-                    const resolvedImages = data.imagens.map(img => {
-                        // Verifica se é URL externa ou se precisa ser resolvida pelo serviço
-                        return img.startsWith('http') ? img : this.fileUploadService.getPreviewUrl(img);
+                    const resolvedImages = data.imagens.map((img: any) => {
+                        // O backend agora retorna objetos { id, url, ... }, não strings.
+                        // Extraímos a URL do objeto.
+                        const urlStr = img.url || img; 
+                        
+                        // Verifica se é URL completa ou se precisa ser resolvida
+                        return urlStr.startsWith('http') 
+                        ? urlStr 
+                        : this.fileUploadService.getPreviewUrl(urlStr);
                     });
+                    
                     this.productImages.set(resolvedImages);
                     this.currentImage.set(resolvedImages[0]);
                 } else {

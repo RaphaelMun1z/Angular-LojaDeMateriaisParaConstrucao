@@ -77,7 +77,11 @@
             @else {
                 <app-product-grid 
                     [products]="produtos()"
-                    [viewMode]="viewMode()">
+                    [viewMode]="viewMode()"
+                    [totalElements]="totalItems()"
+                    [totalPages]="totalPages()"
+                    [currentPage]="currentPage()"
+                    (pageChange)="onPageChange($event)">
                 </app-product-grid>
 
                 @if (produtos().length === 0) {

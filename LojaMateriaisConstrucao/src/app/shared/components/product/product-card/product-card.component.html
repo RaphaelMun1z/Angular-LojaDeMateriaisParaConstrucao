@@ -9,7 +9,7 @@
 
   <!-- IMAGEM -->
   <div 
-    class="relative overflow-hidden bg-gray-50 border-gray-50 group/image flex items-center justify-center"
+    class="relative overflow-hidden bg-white border-gray-50 group/image flex items-center justify-center"
     [ngClass]="{
       'aspect-[4/3] border-b w-full': viewMode === 'grid',
       'w-full sm:w-56 h-48 rounded-lg shrink-0': viewMode === 'list'
@@ -29,12 +29,25 @@
       }
     </div>
 
-    <!-- Imagem Placeholder -->
-    <i class="ph-duotone ph-image text-6xl text-gray-300 group-hover:scale-110 transition-transform duration-700"></i>
+    <!-- IMAGEM DO PRODUTO -->
+    @if (mainImage) {
+      <img 
+        [src]="mainImage" 
+        [alt]="product.titulo" 
+        class="w-full h-full object-contain p-[1vw] group-hover:scale-110 transition-transform duration-700">
+    } @else {
+      <i class="ph-duotone ph-image text-6xl text-gray-300 group-hover:scale-110 transition-transform duration-700"></i>
+    }
 
-    <!-- Botão Favorito -->
-    <button (click)="$event.stopPropagation()" class="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100 duration-200 backdrop-blur-sm z-20">
-      <i class="ph-fill ph-heart"></i>
+    <!-- Botão Favorito Atualizado -->
+    <button 
+      (click)="onToggleFavorite($event)" 
+      class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm backdrop-blur-sm z-20"
+      [ngClass]="favoritoService.isFavorito(product.id) 
+        ? 'bg-red-50 text-red-500 opacity-100' 
+        : 'bg-white/90 text-gray-400 hover:bg-white hover:text-red-500 opacity-0 group-hover:opacity-100'">
+      
+      <i [class]="favoritoService.isFavorito(product.id) ? 'ph-fill ph-heart' : 'ph-bold ph-heart'"></i>
     </button>
   </div>
 

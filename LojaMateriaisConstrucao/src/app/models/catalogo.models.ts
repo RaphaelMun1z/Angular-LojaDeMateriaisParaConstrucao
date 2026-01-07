@@ -20,6 +20,13 @@ export interface CategoriaRequest {
 
 // --- PRODUTOS ---
 
+export interface ImagemProduto {
+    id: string;
+    url: string;
+    ordem: number;
+    principal: boolean;
+}
+
 export interface Produto {
     id: string;
     codigoControle: string;
@@ -32,7 +39,19 @@ export interface Produto {
     pesoKg?: number;
     dimensoes?: string;
     categoria?: Categoria;
-    imagens: string[]; // ADICIONADO: Lista de URLs
+    imagens: ImagemProduto[];
+}
+
+export interface PageMetadata {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+}
+
+export interface PagedResponse<T> {
+    content: T[];
+    page: PageMetadata;
 }
 
 export interface ProdutoRequest {

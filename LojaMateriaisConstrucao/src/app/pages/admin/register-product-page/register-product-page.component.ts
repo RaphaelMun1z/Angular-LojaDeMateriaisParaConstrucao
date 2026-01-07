@@ -95,15 +95,12 @@ export class RegisterProductPageComponent implements OnInit {
                     dimensoes: produto.dimensoes
                 });
                 
-                // Tratamento das imagens vindas do banco
                 if (produto.imagens && produto.imagens.length > 0) {
-                    const imagensProcessadas = produto.imagens.map(img => {
-                        // Se não começar com http, assumimos que é um nome de arquivo e geramos a URL
-                        return img.startsWith('http') 
-                        ? img 
-                        : this.fileUploadService.getPreviewUrl(img);
-                    });
-                    this.images.set(imagensProcessadas);
+                    const urls = produto.imagens
+                    .sort((a, b) => a.ordem - b.ordem)
+                    .map(img => img.url);
+                    
+                    this.images.set(urls);
                 }
                 
                 this.isLoading.set(false);
@@ -115,42 +112,49 @@ export class RegisterProductPageComponent implements OnInit {
         });
     }
     
-    // --- Lógica de Upload REAL ---
+    // --- Lógica de Upload CORRIGIDA ---
     onFileSelected(event: any) {
         const files: FileList = event.target.files;
         if (files && files.length > 0) {
             this.isUploading.set(true);
             let uploadCount = 0;
-            let successCount = 0;
             const totalFiles = files.length;
             
             for (let i = 0; i < totalFiles; i++) {
                 const file = files[i];
                 
-                // Validação simples de tipo
                 if (!file.type.startsWith('image/')) {
-                    this.toastr.warning(`O arquivo ${file.name} não é uma imagem válida.`);
+                    this.toastr.warning(`Arquivo ${file.name} ignorado (não é imagem).`);
                     uploadCount++;
                     this.checkUploadComplete(uploadCount, totalFiles);
                     continue;
                 }
                 
                 this.fileUploadService.upload(file).subscribe({
-                    next: (httpEvent: any) => {
-                        if (httpEvent instanceof HttpResponse) {
-                            // Sucesso: Backend retornou o nome do arquivo (ex: uuid.jpg)
-                            const fileName = httpEvent.body.fileName;
-                            const fullUrl = this.fileUploadService.getPreviewUrl(fileName);
-                            
-                            // Adiciona ao signal de imagens
-                            this.images.update(imgs => [...imgs, fullUrl]);
-                            successCount++;
+                    next: (response: any) => {
+                        let finalUrl = '';
+                        
+                        // Verifica se é uma resposta HTTP completa com corpo
+                        if (response instanceof HttpResponse) {
+                            if (response.body && response.body.url) {
+                                finalUrl = response.body.url;
+                            }
+                        } 
+                        // Verifica se é o objeto DTO direto (caso o serviço retorne o body)
+                        // Importante: Checamos 'fileName' para garantir que não é um HttpHeaderResponse
+                        else if (response.url && response.fileName) {
+                            finalUrl = response.url;
+                        }
+                        
+                        // Só adiciona se tivermos uma URL válida de imagem
+                        if (finalUrl) {
+                            this.images.update(imgs => [...imgs, finalUrl]);
                             uploadCount++;
                             this.checkUploadComplete(uploadCount, totalFiles);
                         }
                     },
                     error: () => {
-                        this.toastr.error(`Erro ao enviar a imagem ${file.name}`);
+                        this.toastr.error(`Erro ao enviar ${file.name}`);
                         uploadCount++;
                         this.checkUploadComplete(uploadCount, totalFiles);
                     }
@@ -192,8 +196,6 @@ export class RegisterProductPageComponent implements OnInit {
             categoriaId: formValue.categoriaId,
             pesoKg: formValue.pesoKg,
             dimensoes: formValue.dimensoes,
-            // Enviamos as URLs completas. 
-            // Nota: Se o seu backend preferir só o nome do arquivo, você pode fazer um .map() aqui para extrair.
             imagens: this.images() 
         };
         
@@ -240,7 +242,6 @@ export class RegisterProductPageComponent implements OnInit {
                 this.toastr.success('Estoque atualizado com sucesso!');
                 this.stockForm.reset({ quantidade: 1, tipo: TipoMovimentacao.ENTRADA, motivo: '' });
                 this.showStockModal.set(false);
-                // Recarrega para atualizar a quantidade na tela
                 this.carregarDadosProduto(this.productId()!);
             },
             error: (err) => this.toastr.error(err.error?.message || 'Erro ao ajustar estoque.'),

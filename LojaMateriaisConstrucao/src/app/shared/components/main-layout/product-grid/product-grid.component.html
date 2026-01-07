@@ -1,119 +1,113 @@
-<div
-class="w-full"
-[ngClass]="{
-  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6': viewMode === 'grid',
-  'flex flex-col gap-4': viewMode === 'list'
-}">
-
-<!-- Loop de Produtos -->
-@for (product of products; track product.id) {
-  <app-product-card
-  [product]="product"
-  [viewMode]="viewMode"
-  (addToCart)="handleAddToCart($event)"
-  (showQuickView)="openPopup(product)"> <!-- CORREÇÃO AQUI: Removido $event -->
-</app-product-card>
-} @empty {
-  <!-- Estado Vazio -->
-  <div class="col-span-full py-20 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-    <i class="ph ph-magnifying-glass text-4xl mb-2 text-gray-400"></i>
-    <p class="text-lg font-medium">Nenhum produto encontrado.</p>
-    <p class="text-sm">Tente ajustar seus filtros de busca.</p>
+<div class="w-full">
+  <div
+    [ngClass]="{
+      'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6': viewMode === 'grid',
+      'flex flex-col gap-4': viewMode === 'list'
+    }">
+    
+    @for (product of products; track product.id) {
+      <app-product-card
+        [product]="product"
+        [viewMode]="viewMode"
+        (addToCart)="handleAddToCart($event)"
+        (showQuickView)="openPopup(product)">
+      </app-product-card>
+    } @empty {
+      <div class="col-span-full py-20 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+        <i class="ph ph-magnifying-glass text-4xl mb-2 text-gray-400"></i>
+        <p class="text-lg font-medium">Nenhum produto encontrado.</p>
+        <p class="text-sm">Tente ajustar seus filtros de busca.</p>
+      </div>
+    }
   </div>
-}
 
+  <!-- Controles de Paginação -->
+  @if (totalPages > 1) {
+    <div class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 pt-8">
+      <div class="text-sm text-gray-500">
+        Mostrando <span class="font-bold text-gray-900">{{ products.length }}</span> de <span class="font-bold text-gray-900">{{ totalElements }}</span> produtos
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Botão Anterior -->
+        <button 
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 0"
+          class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600">
+          <i class="ph-bold ph-caret-left"></i>
+        </button>
+
+        <!-- Números das Páginas (Lógica simplificada) -->
+        <div class="flex items-center gap-1">
+          @for (p of pagesArray; track p) {
+            <button 
+              (click)="changePage(p)"
+              [class]="p === currentPage 
+                ? 'w-10 h-10 rounded-lg bg-brand-600 text-white font-bold shadow-lg shadow-brand-500/20' 
+                : 'w-10 h-10 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium'"
+              class="transition-all text-sm">
+              {{ p + 1 }}
+            </button>
+          }
+        </div>
+
+        <!-- Botão Próximo -->
+        <button 
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage >= totalPages - 1"
+          class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600">
+          <i class="ph-bold ph-caret-right"></i>
+        </button>
+      </div>
+    </div>
+  }
 </div>
 
 <!-- Modal de Visualização Rápida (Quick View) -->
 @if (selectedProduct(); as product) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
-  (click)="closePopup()">
-  
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative animate-scale-in"
-  (click)="$event.stopPropagation()">
-  
-  <!-- Botão Fechar -->
-  <button (click)="closePopup()"
-  class="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors z-10 text-gray-600">
-  <i class="ph-bold ph-x text-xl"></i>
-</button>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
-  <!-- Imagem do Produto -->
-  <div class="bg-gray-100 flex items-center justify-center h-64 md:h-auto min-h-[300px]">
-    <i class="ph-duotone ph-image text-8xl text-gray-300"></i>
-  </div>
-  
-  <!-- Detalhes do Produto -->
-  <div class="p-6 md:p-8 flex flex-col justify-center space-y-6">
-    <div>
-      <div class="flex items-center gap-2 mb-2">
-        @if (product.estoque > 0) {
-          <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wide">
-            Em Estoque
-          </span>
-        } @else {
-          <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full uppercase tracking-wide">
-            Indisponível
-          </span>
-        }
-        @if (product.precoPromocional) {
-          <span class="px-2 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full uppercase tracking-wide">
-            Oferta
-          </span>
-        }
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" (click)="closePopup()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative animate-scale-in" (click)="$event.stopPropagation()">
+      <button (click)="closePopup()" class="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors z-10 text-gray-600">
+        <i class="ph-bold ph-x text-xl"></i>
+      </button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
+        <div class="bg-gray-100 flex items-center justify-center h-64 md:h-auto min-h-[300px]">
+           @if (product.imagens && product.imagens.length > 0) {
+             <img [src]="product.imagens[0]" class="w-full h-full object-contain p-8">
+           } @else {
+             <i class="ph-duotone ph-image text-8xl text-gray-300"></i>
+           }
+        </div>
+        <div class="p-6 md:p-8 flex flex-col justify-center space-y-6">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span [class]="product.estoque > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="px-2 py-1 text-xs font-bold rounded-full uppercase tracking-wide">
+                {{ product.estoque > 0 ? 'Em Estoque' : 'Indisponível' }}
+              </span>
+              @if (product.precoPromocional) {
+                <span class="px-2 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full uppercase tracking-wide">Oferta</span>
+              }
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 leading-tight">{{ product.titulo }}</h2>
+            <p class="text-sm text-gray-500 mt-1">SKU: {{ product.codigoControle }}</p>
+          </div>
+          <div class="flex items-baseline gap-3">
+            @if (product.precoPromocional) {
+              <span class="text-4xl font-extrabold text-brand-600">{{ product.precoPromocional | currency:'BRL' }}</span>
+              <span class="text-xl text-gray-400 line-through decoration-2">{{ product.preco | currency:'BRL' }}</span>
+            } @else {
+              <span class="text-4xl font-extrabold text-gray-900">{{ product.preco | currency:'BRL' }}</span>
+            }
+          </div>
+          <p class="text-gray-600 leading-relaxed border-t border-b border-gray-100 py-4">{{ product.descricao }}</p>
+          <div class="pt-4">
+            <button (click)="handleAddToCart(product); closePopup()" [disabled]="product.estoque <= 0" class="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-brand-500/20">
+              <i class="ph-bold" [ngClass]="product.estoque > 0 ? 'ph-shopping-cart' : 'ph-prohibit'"></i>
+              {{ product.estoque > 0 ? 'Adicionar ao Carrinho' : 'Sem Estoque' }}
+            </button>
+          </div>
+        </div>
       </div>
-      <h2 class="text-3xl font-bold text-gray-900 leading-tight">{{ product.titulo }}</h2>
-      <p class="text-sm text-gray-500 mt-1">SKU: {{ product.codigoControle }}</p>
     </div>
-    
-    <!-- Preço -->
-    <div class="flex items-baseline gap-3">
-      @if (product.precoPromocional) {
-        <span class="text-4xl font-extrabold text-brand-600">
-          {{ product.precoPromocional | currency:'BRL' }}
-        </span>
-        <span class="text-xl text-gray-400 line-through decoration-2">
-          {{ product.preco | currency:'BRL' }}
-        </span>
-      } @else {
-        <span class="text-4xl font-extrabold text-gray-900">
-          {{ product.preco | currency:'BRL' }}
-        </span>
-      }
-    </div>
-    
-    <!-- Descrição -->
-    <p class="text-gray-600 leading-relaxed border-t border-b border-gray-100 py-4">
-      {{ product.descricao }}
-    </p>
-    
-    <!-- Especificações Rápidas -->
-    <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
-      @if (product.dimensoes) {
-        <div><span class="font-semibold text-gray-900">Dimensões:</span> {{ product.dimensoes }}</div>
-      }
-      @if (product.pesoKg) {
-        <div><span class="font-semibold text-gray-900">Peso:</span> {{ product.pesoKg }}kg</div>
-      }
-    </div>
-    
-    <!-- Ação -->
-    <div class="pt-4">
-      <button (click)="handleAddToCart(product); closePopup()"
-      [disabled]="product.estoque <= 0"
-      class="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-95 shadow-lg shadow-brand-500/20">
-      @if (product.estoque > 0) {
-        <i class="ph-bold ph-shopping-cart text-xl"></i>
-        Adicionar ao Carrinho
-      } @else {
-        <i class="ph-bold ph-prohibit text-xl"></i>
-        Sem Estoque
-      }
-    </button>
   </div>
-</div>
-</div>
-</div>
-</div>
 }

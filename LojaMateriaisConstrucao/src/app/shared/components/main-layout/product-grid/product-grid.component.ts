@@ -1,4 +1,4 @@
-import { Component, inject, Input, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -21,12 +21,31 @@ export class ProductGridComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
     
+    // Dados e Layout
     @Input() products: Produto[] = []; 
-    
-    // O MainLayout passa o valor aqui. O Angular atualiza automaticamente.
     @Input() viewMode: 'grid' | 'list' = 'grid';
     
+    // Metadados de Paginação
+    @Input() totalElements = 0;
+    @Input() totalPages = 0;
+    @Input() currentPage = 0;
+    
+    @Output() pageChange = new EventEmitter<number>();
+    
     selectedProduct = signal<Produto | null>(null);
+    
+    // Gera o array de números de página para o @for
+    get pagesArray(): number[] {
+        return Array.from({ length: this.totalPages }, (_, i) => i);
+    }
+    
+    changePage(page: number) {
+        if (page >= 0 && page < this.totalPages && page !== this.currentPage) {
+            this.pageChange.emit(page);
+            // Scroll suave para o topo do grid ao mudar de página
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
     
     handleAddToCart(product: Produto) {
         if (product.estoque <= 0) {
@@ -41,7 +60,7 @@ export class ProductGridComponent {
         }
         
         const user = this.authService.currentUser();
-        const clienteId = user?.id; // Usa o ID (UUID)
+        const clienteId = user?.id;
         
         if (!clienteId) {
             this.toastr.error('Erro de sessão. Faça login novamente.');
@@ -49,9 +68,7 @@ export class ProductGridComponent {
         }
         
         this.carrinhoService.adicionarItem(clienteId, product.id).subscribe({
-            next: () => {
-                this.toastr.success(`${product.titulo} adicionado!`, 'Carrinho');
-            },
+            next: () => this.toastr.success(`${product.titulo} adicionado!`, 'Carrinho'),
             error: (err) => {
                 this.toastr.error('Erro ao adicionar produto.', 'Erro');
                 console.error(err);
